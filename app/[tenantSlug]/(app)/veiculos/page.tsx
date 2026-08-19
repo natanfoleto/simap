@@ -263,7 +263,7 @@ export default function VehiclesPage({ params }: { params: { tenantSlug: string 
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[120px]">Cód. Frota</TableHead>
+                  <TableHead className="w-[160px] min-w-[150px]">Cód. Frota</TableHead>
                   <TableHead className="w-[120px]">Placa</TableHead>
                   <TableHead>Modelo / Marca</TableHead>
                   <TableHead>Categoria</TableHead>
@@ -277,11 +277,11 @@ export default function VehiclesPage({ params }: { params: { tenantSlug: string 
               <TableBody>
                 {vehicles.map((v) => (
                   <TableRow key={v.id}>
-                    <TableCell className="font-bold text-foreground">
-                      <div className="flex items-center gap-1.5">
+                    <TableCell className="font-bold text-foreground whitespace-nowrap">
+                      <div className="flex items-center gap-2">
                         <span>{v.fleetCode}</span>
                         {v.isPilot && (
-                          <span className="text-[9px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-md">
+                          <span className="text-[9px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-md tracking-wider">
                             PILOTO
                           </span>
                         )}

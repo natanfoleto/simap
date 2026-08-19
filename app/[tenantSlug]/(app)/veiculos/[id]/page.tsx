@@ -85,7 +85,7 @@ export default function VehicleDetailPage({
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="space-y-6 w-full">
         <Skeleton className="h-10 w-48 rounded-xl" />
         <Skeleton className="h-96 rounded-3xl" />
       </div>
@@ -146,7 +146,7 @@ export default function VehicleDetailPage({
   const activePlan = vehicle.preventivePlans?.[0]?.plan;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="space-y-6 w-full">
       {/* Top Navigation */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">

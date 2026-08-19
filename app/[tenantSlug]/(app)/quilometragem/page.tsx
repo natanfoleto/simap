@@ -122,7 +122,7 @@ export default function OdometerPage({ params }: { params: { tenantSlug: string 
   }
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto">
+    <div className="space-y-6 w-full">
       {/* Header */}
       <div>
         <div className="flex items-center gap-2">

@@ -37,7 +37,7 @@ export default function AuditAdminPage() {
   const pagination = data?.pagination || { total: 0, page: 1, totalPages: 1 };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-6 w-full">
       {/* Header */}
       <div>
         <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground">

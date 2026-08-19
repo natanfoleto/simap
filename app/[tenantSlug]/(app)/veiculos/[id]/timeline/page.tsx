@@ -29,7 +29,7 @@ export default function VehicleTimelinePage({
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="space-y-6 w-full">
         <Skeleton className="h-10 w-48 rounded-xl" />
         <Skeleton className="h-96 rounded-3xl" />
       </div>
@@ -59,7 +59,7 @@ export default function VehicleTimelinePage({
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="space-y-6 w-full">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">

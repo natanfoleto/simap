@@ -54,7 +54,7 @@ export default function MaintenanceOrderDetailPage({
 
   if (isLoading) {
     return (
-      <div className="max-w-5xl mx-auto space-y-6">
+      <div className="space-y-6 w-full">
         <Skeleton className="h-10 w-48 rounded-xl" />
         <Skeleton className="h-96 rounded-3xl" />
       </div>
@@ -151,7 +151,7 @@ export default function MaintenanceOrderDetailPage({
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="space-y-6 w-full">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">

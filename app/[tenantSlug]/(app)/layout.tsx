@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSessionWithPermissions } from "@/lib/auth";
 import { requireTenantAccess } from "@/lib/tenant";
+import { SidebarProvider } from "@/components/layout/sidebar-context";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 
@@ -27,17 +28,19 @@ export default async function AppLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
-      {/* Sidebar Lateral */}
-      <Sidebar tenantSlug={params.tenantSlug} />
+    <SidebarProvider>
+      <div className="flex min-h-screen bg-background text-foreground">
+        {/* Sidebar Lateral */}
+        <Sidebar tenantSlug={params.tenantSlug} />
 
-      {/* Área Principal de Conteúdo */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <Header />
-        <main className="flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto space-y-8 animate-in fade-in-50 duration-300">
-          {children}
-        </main>
+        {/* Área Principal de Conteúdo 100% Full Width */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+          <Header />
+          <main className="flex-1 p-6 md:p-8 w-full space-y-6 min-w-0">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }

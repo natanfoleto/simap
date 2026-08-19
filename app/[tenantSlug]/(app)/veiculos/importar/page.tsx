@@ -93,7 +93,7 @@ export default function ImportVehiclesPage({ params }: { params: { tenantSlug: s
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="space-y-6 w-full">
       {/* Top Bar */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">

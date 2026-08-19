@@ -46,7 +46,7 @@ export default function ProjectSettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-5xl mx-auto space-y-6">
+      <div className="space-y-6 w-full">
         <Skeleton className="h-10 w-64 rounded-xl" />
         <Skeleton className="h-72 rounded-3xl" />
         <Skeleton className="h-96 rounded-3xl" />
@@ -83,7 +83,7 @@ export default function ProjectSettingsPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
+    <div className="space-y-6 w-full">
       {/* Header */}
       <div>
         <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground">

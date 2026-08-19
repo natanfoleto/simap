@@ -157,7 +157,7 @@ export default function NewMaintenanceOrderPage({ params }: { params: { tenantSl
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="space-y-6 w-full">
       {/* Top Header */}
       <div className="flex items-center gap-4">
         <Link href={`/${params.tenantSlug}/ordens-servico`}>
