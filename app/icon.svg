@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6" />
+      <stop offset="50%" stop-color="#2563EB" />
+      <stop offset="100%" stop-color="#1D4ED8" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#E0F2FE" />
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#60A5FA" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#1D4ED8" stop-opacity="0" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- Background Squircle -->
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#bgGrad)" />
+  
+  <!-- Subtle Top Highlight Border -->
+  <rect x="2" y="2" width="60" height="60" rx="16" stroke="url(#glowGrad)" stroke-width="2" />
+
+  <!-- Stylized Maintenance Wrench & Gear / Checkmark Icon -->
+  <g filter="url(#shadow)">
+    <!-- Wrench Tool -->
+    <path 
+      d="M39.6 15.2c-3.1-3.1-7.8-3.7-11.5-1.8l6.3 6.3-4.2 4.2-6.3-6.3c-1.9 3.7-1.3 8.4 1.8 11.5 2.8 2.8 6.9 3.6 10.4 2.3l10.3 10.3c1.2 1.2 3.1 1.2 4.2 0l1.4-1.4c1.2-1.2 1.2-3.1 0-4.2L41.9 25.6c1.3-3.5.5-7.6-2.3-10.4z" 
+      fill="url(#accentGrad)" 
+    />
+    <!-- Sparkle / Preventative Dot -->
+    <circle cx="21" cy="43" r="3" fill="#38BDF8" />
+  </g>
+</svg>

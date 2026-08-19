@@ -7,20 +7,20 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatBRL, formatPercentage, formatUTCDate } from "@/lib/formatters";
+import { formatBRL, formatPercentage } from "@/lib/formatters";
 import {
   Truck,
-  CheckCircle2,
-  Clock,
+  CalendarCheck,
+  ClipboardCheck,
+  Wrench,
+  Gauge,
+  ShieldCheck,
   TrendingDown,
-  FileSpreadsheet,
   Plus,
   AlertTriangle,
-  CalendarCheck,
-  Building,
   DollarSign,
   ArrowRight,
-  ShieldCheck,
+  CheckCircle2,
 } from "lucide-react";
 
 export default function DashboardPage({ params }: { params: { tenantSlug: string } }) {
@@ -50,7 +50,7 @@ export default function DashboardPage({ params }: { params: { tenantSlug: string
     inactiveVehicles: 0,
     expectedFleetTotal: 97,
     registrationCoveragePercentage: 0,
-    overallProgress: 25,
+    overallProgress: 100,
   };
 
   const settings = data?.settings || {
@@ -60,7 +60,62 @@ export default function DashboardPage({ params }: { params: { tenantSlug: string
     calculatedTargetSavings: 57000,
   };
 
-  const milestones = data?.milestones || [];
+  const operationalModules = [
+    {
+      title: "Veículos da Frota",
+      description: "Consulta geral, classificação por setor/categoria, histórico e cadastro.",
+      href: `/${params.tenantSlug}/veiculos`,
+      icon: Truck,
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+      stats: `${stats.totalVehicles} cadastrados`,
+    },
+    {
+      title: "Planos Preventivos",
+      description: "Intervalos por km e tempo para revisões, troca de óleo, freios e suspensão.",
+      href: `/${params.tenantSlug}/planos-preventivos`,
+      icon: CalendarCheck,
+      color: "text-emerald-600 dark:text-emerald-400",
+      bgColor: "bg-emerald-500/10",
+      stats: "Configuração por categoria",
+    },
+    {
+      title: "Checklists & Vistorias",
+      description: "Inspeções pré-operação diárias realizadas por motoristas e operadores.",
+      href: `/${params.tenantSlug}/checklists`,
+      icon: ClipboardCheck,
+      color: "text-blue-600 dark:text-blue-400",
+      bgColor: "bg-blue-500/10",
+      stats: "Vistorias diárias",
+    },
+    {
+      title: "Ordens de Serviço (OS)",
+      description: "Abertura, acompanhamento de execução e controle de custos de manutenção.",
+      href: `/${params.tenantSlug}/ordens-servico`,
+      icon: Wrench,
+      color: "text-amber-600 dark:text-amber-400",
+      bgColor: "bg-amber-500/10",
+      stats: "Preventivas e Corretivas",
+    },
+    {
+      title: "Controle de Quilometragem",
+      description: "Registro de leituras de hodômetro, controle de rodagem e prevenção de regressão.",
+      href: `/${params.tenantSlug}/quilometragem`,
+      icon: Gauge,
+      color: "text-purple-600 dark:text-purple-400",
+      bgColor: "bg-purple-500/10",
+      stats: "Histórico auditável",
+    },
+    {
+      title: "Grupo Piloto Prioritário",
+      description: "Acompanhamento focado dos veículos essenciais de transporte escolar e saúde.",
+      href: `/${params.tenantSlug}/piloto`,
+      icon: ShieldCheck,
+      color: "text-indigo-600 dark:text-indigo-400",
+      bgColor: "bg-indigo-500/10",
+      stats: "Monitoramento intensivo",
+    },
+  ];
 
   return (
     <div className="space-y-8">
@@ -76,17 +131,11 @@ export default function DashboardPage({ params }: { params: { tenantSlug: string
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
-            Acompanhamento do Programa Pro Inova — Sistema Municipal de Manutenção Preventiva
+            Gestão estratégica e operacional da frota municipal e manutenção preventiva
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <Link href={`/${params.tenantSlug}/veiculos/importar`}>
-            <Button variant="outline" className="rounded-2xl gap-2 shadow-sm">
-              <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-              Importar Frota (CSV)
-            </Button>
-          </Link>
           <Link href={`/${params.tenantSlug}/veiculos/novo`}>
             <Button className="rounded-2xl gap-2 shadow-md shadow-primary/20">
               <Plus className="h-4 w-4" />
@@ -106,13 +155,13 @@ export default function DashboardPage({ params }: { params: { tenantSlug: string
             <div>
               <h4 className="font-bold text-sm">Inventário Parcial da Frota</h4>
               <p className="text-xs opacity-90">
-                {stats.totalVehicles} de {stats.expectedFleetTotal} veículos cadastrados ({formatPercentage(stats.registrationCoveragePercentage)} de cobertura). Importe a planilha oficial para completar o diagnóstico.
+                {stats.totalVehicles} de {stats.expectedFleetTotal} veículos cadastrados ({formatPercentage(stats.registrationCoveragePercentage)} de cobertura).
               </p>
             </div>
           </div>
-          <Link href={`/${params.tenantSlug}/veiculos/importar`}>
+          <Link href={`/${params.tenantSlug}/veiculos/novo`}>
             <Button variant="outline" size="sm" className="rounded-xl border-amber-500/30 hover:bg-amber-500/20 whitespace-nowrap">
-              Importar agora
+              Cadastrar veículo
             </Button>
           </Link>
         </div>
@@ -162,7 +211,7 @@ export default function DashboardPage({ params }: { params: { tenantSlug: string
         {/* Meta de Redução */}
         <Card className="rounded-3xl border-border/40 bg-card/40 backdrop-blur-md">
           <CardHeader className="p-5 pb-2 flex flex-row items-center justify-between border-none">
-            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Meta de Redução</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Meta de Economia</span>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
               <TrendingDown className="h-4 w-4" />
             </div>
@@ -182,149 +231,70 @@ export default function DashboardPage({ params }: { params: { tenantSlug: string
           </CardContent>
         </Card>
 
-        {/* Progresso do Pro Inova */}
+        {/* Disponibilidade Operacional */}
         <Card className="rounded-3xl border-border/40 bg-card/40 backdrop-blur-md">
           <CardHeader className="p-5 pb-2 flex flex-row items-center justify-between border-none">
-            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Programa Pro Inova</span>
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
-              <ShieldCheck className="h-4 w-4" />
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Disponibilidade da Frota</span>
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+              <CheckCircle2 className="h-4 w-4" />
             </div>
           </CardHeader>
           <CardContent className="px-5 pb-5 pt-0">
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-black text-foreground">2 / 8</span>
-              <span className="text-xs text-muted-foreground">meses validados</span>
+              <span className="text-3xl font-black text-foreground">
+                {stats.totalVehicles > 0 ? Math.round((stats.activeVehicles / stats.totalVehicles) * 100) : 100}%
+              </span>
+              <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">Operacional</span>
             </div>
-            <div className="mt-3 space-y-1">
-              <div className="flex justify-between text-[11px] font-medium text-muted-foreground">
-                <span>Progresso Oficial</span>
-                <span>{formatPercentage(stats.overallProgress)}</span>
-              </div>
-              <Progress value={stats.overallProgress} className="h-1.5" />
-            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {stats.activeVehicles} veículos aptos para operação
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Status dos 8 Marcos Institucionais */}
-      <Card className="overflow-hidden rounded-3xl border-border/40 bg-card/30 backdrop-blur-md shadow-sm">
-        <CardHeader className="border-b border-border/30 p-6 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Módulos de Operação e Gestão */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-xl font-bold tracking-tight text-foreground/90">
-              Cronograma de Entregas Oficiais (8 Meses)
-            </CardTitle>
-            <CardDescription>
-              Marcos do programa Pro Inova para implementação de manutenção preventiva no transporte municipal
-            </CardDescription>
+            <h2 className="text-lg font-bold tracking-tight text-foreground">Módulos da Gestão de Frotas</h2>
+            <p className="text-xs text-muted-foreground">Acesso rápido aos fluxos operacionais e preventivos da prefeitura</p>
           </div>
-          <Link href={`/${params.tenantSlug}/administracao/projeto`}>
-            <Button variant="ghost" size="sm" className="rounded-xl gap-1.5 text-xs">
-              Ver detalhes do projeto
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Button>
-          </Link>
-        </CardHeader>
+        </div>
 
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {milestones.map((m: {
-              id: string;
-              monthNumber: number;
-              title: string;
-              deliverable: string;
-              status: string;
-              completionPercentage: number;
-              validatedAt?: string;
-            }) => {
-              const isValidated = m.status === "VALIDADO";
-              return (
-                <div
-                  key={m.id}
-                  className={`p-4 rounded-2xl border transition-all duration-200 ${
-                    isValidated
-                      ? "border-emerald-500/30 bg-emerald-500/5 dark:bg-emerald-500/10"
-                      : "border-border/40 bg-card/40 opacity-75"
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className="text-xs font-bold text-muted-foreground">
-                      Mês {m.monthNumber}
-                    </span>
-                    {isValidated ? (
-                      <Badge variant="success" className="text-[10px] gap-1 py-0.5">
-                        <CheckCircle2 className="h-3 w-3" />
-                        100% VALIDADO
-                      </Badge>
-                    ) : (
-                      <Badge variant="neutral" className="text-[10px] gap-1 py-0.5">
-                        <Clock className="h-3 w-3" />
-                        PENDENTE
-                      </Badge>
-                    )}
-                  </div>
-                  <h4 className="font-bold text-sm text-foreground line-clamp-1 mb-1">{m.title}</h4>
-                  <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{m.deliverable}</p>
-                  {isValidated && m.validatedAt && (
-                    <div className="text-[10px] text-emerald-700 dark:text-emerald-400 font-medium">
-                      Validado em {formatUTCDate(m.validatedAt)}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {operationalModules.map((mod) => {
+            const Icon = mod.icon;
+            return (
+              <Link key={mod.href} href={mod.href} className="group">
+                <Card className="h-full rounded-3xl border-border/40 bg-card/30 backdrop-blur-md transition-all duration-200 group-hover:border-primary/50 group-hover:shadow-md flex flex-col justify-between">
+                  <CardHeader className="p-6 pb-3">
+                    <div className="flex items-center justify-between gap-3 mb-2">
+                      <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${mod.bgColor} ${mod.color} group-hover:scale-105 transition-transform`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <span className="text-[11px] font-semibold text-muted-foreground bg-muted/30 px-2.5 py-1 rounded-full">
+                        {mod.stats}
+                      </span>
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Ações e Módulos Rápidos */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <Link href={`/${params.tenantSlug}/veiculos`} className="group">
-          <Card className="h-full rounded-3xl border-border/40 bg-card/30 backdrop-blur-md transition-all duration-200 group-hover:border-primary/50 group-hover:shadow-md">
-            <CardHeader className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
-                  <Truck className="h-5 w-5" />
-                </div>
-                <div>
-                  <CardTitle className="text-base font-bold">Gestão da Frota</CardTitle>
-                  <CardDescription className="text-xs">Consulta, filtros e cadastro dos veículos</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-        </Link>
-
-        <Link href={`/${params.tenantSlug}/planos-preventivos`} className="group">
-          <Card className="h-full rounded-3xl border-border/40 bg-card/30 backdrop-blur-md transition-all duration-200 group-hover:border-primary/50 group-hover:shadow-md">
-            <CardHeader className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 group-hover:scale-105 transition-transform">
-                  <CalendarCheck className="h-5 w-5" />
-                </div>
-                <div>
-                  <CardTitle className="text-base font-bold">Planos Preventivos</CardTitle>
-                  <CardDescription className="text-xs">Intervalos por tempo, km e vinculação</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-        </Link>
-
-        <Link href={`/${params.tenantSlug}/administracao/projeto`} className="group">
-          <Card className="h-full rounded-3xl border-border/40 bg-card/30 backdrop-blur-md transition-all duration-200 group-hover:border-primary/50 group-hover:shadow-md">
-            <CardHeader className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-600 group-hover:scale-105 transition-transform">
-                  <Building className="h-5 w-5" />
-                </div>
-                <div>
-                  <CardTitle className="text-base font-bold">Configurações & Metas</CardTitle>
-                  <CardDescription className="text-xs">Linha de base orçamentária e cronograma</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-        </Link>
+                    <CardTitle className="text-base font-bold group-hover:text-primary transition-colors">
+                      {mod.title}
+                    </CardTitle>
+                    <CardDescription className="text-xs line-clamp-2 mt-1">
+                      {mod.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="px-6 pb-6 pt-0">
+                    <div className="flex items-center text-xs font-semibold text-primary pt-3 border-t border-border/20 gap-1 group-hover:translate-x-1 transition-transform">
+                      <span>Acessar módulo</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

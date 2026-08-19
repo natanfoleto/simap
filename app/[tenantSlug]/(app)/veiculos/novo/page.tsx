@@ -304,8 +304,8 @@ export default function NewVehiclePage({ params }: { params: { tenantSlug: strin
 
               <div className="flex items-center justify-between p-3.5 rounded-2xl border border-border/30 bg-muted/20 mt-4">
                 <div className="flex flex-col">
-                  <span className="text-xs font-bold text-foreground">Grupo Piloto (Mês 3)</span>
-                  <span className="text-[10px] text-muted-foreground">Participa do piloto inicial</span>
+                  <span className="text-xs font-bold text-foreground">Grupo Piloto Prioritário</span>
+                  <span className="text-[10px] text-muted-foreground">Veículo monitorado no grupo prioritário</span>
                 </div>
                 <Switch
                   checked={formData.isPilot}

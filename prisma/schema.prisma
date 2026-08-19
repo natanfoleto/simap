@@ -39,12 +39,6 @@ enum Criticality {
   CRITICA
 }
 
-enum MilestoneStatus {
-  VALIDADO
-  EM_ANDAMENTO
-  PENDENTE
-}
-
 enum MaintenanceType {
   PREVENTIVA
   CORRETIVA
@@ -94,9 +88,7 @@ model Tenant {
   preventivePlans        PreventivePlan[]
   preventivePlanItems    PreventivePlanItem[]
   vehiclePreventivePlans VehiclePreventivePlan[]
-  projects               Project[]
-  projectMilestones      ProjectMilestone[]
-  projectSettings        ProjectSetting[]
+  settings               TenantSetting[]
   auditLogs              AuditLog[]
   loginLogs              LoginLog[]
   vehicleAssignments     VehicleAssignment[]
@@ -196,42 +188,7 @@ model LoginLog {
   @@index([createdAt])
 }
 
-model Project {
-  id             String   @id @default(cuid())
-  tenantId       String
-  title          String
-  systemName     String   @default("SIMAP")
-  durationMonths Int      @default(8)
-  theme          String   @default("Transporte Público")
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-
-  @@index([tenantId])
-}
-
-model ProjectMilestone {
-  id                   String          @id @default(cuid())
-  tenantId             String
-  monthNumber          Int
-  title                String
-  deliverable          String
-  evidence             String
-  status               MilestoneStatus @default(PENDENTE)
-  completionPercentage Decimal         @default(0) @db.Decimal(5, 2)
-  validatedAt          DateTime?
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
-
-  tenant               Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-
-  @@unique([tenantId, monthNumber])
-  @@index([tenantId])
-  @@index([monthNumber])
-}
-
-model ProjectSetting {
+model TenantSetting {
   id          String   @id @default(cuid())
   tenantId    String
   key         String
@@ -349,9 +306,6 @@ model VehiclePreventivePlan {
   @@index([planId])
 }
 
-// ----------------------------------------------------
-// MODELOS DO ROADMAP R1 — OPERAÇÃO CONTROLADA (MÊS 3)
-// ----------------------------------------------------
 
 model VehicleAssignment {
   id         String   @id @default(cuid())

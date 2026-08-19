@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
 import { VehicleInput } from "@/lib/validations";
-import { ValidatedVehicleRow } from "@/app/api/vehicles/import/route";
 
 interface VehiclesQueryParams {
   [key: string]: unknown;
@@ -147,37 +146,3 @@ export function useDeleteVehicle() {
   });
 }
 
-export function useImportVehiclesPreview() {
-  return useMutation({
-    mutationFn: async (csvContent: string) => {
-      const res = await fetch("/api/vehicles/import", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "preview", csvContent }),
-      });
-      const json = await res.json();
-      if (!json.success) throw new Error(json.message || "Erro na validação do CSV");
-      return json.data;
-    },
-  });
-}
-
-export function useImportVehiclesCommit() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (confirmedVehicles: ValidatedVehicleRow[]) => {
-      const res = await fetch("/api/vehicles/import", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "commit", confirmedVehicles }),
-      });
-      const json = await res.json();
-      if (!json.success) throw new Error(json.message || "Erro na importação dos veículos");
-      return json.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.vehicles.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.project.summary });
-    },
-  });
-}

@@ -17,11 +17,6 @@ export default function LoginPage({ params }: { params: { tenantSlug: string } }
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const tenantName =
-    params.tenantSlug === "jaborandi-sp"
-      ? "Município de Jaborandi/SP"
-      : `Organização ${params.tenantSlug}`;
-
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -79,10 +74,6 @@ export default function LoginPage({ params }: { params: { tenantSlug: string } }
               <CardTitle className="text-xl font-bold tracking-tight text-foreground/90">
                 Acesso Seguro
               </CardTitle>
-              <span className="text-[11px] font-semibold bg-primary/10 text-primary px-2.5 py-1 rounded-full flex items-center gap-1">
-                <Shield className="h-3 w-3" />
-                {tenantName}
-              </span>
             </div>
             <CardDescription>
               Informe suas credenciais para entrar no sistema
@@ -152,7 +143,7 @@ export default function LoginPage({ params }: { params: { tenantSlug: string } }
 
             <div className="mt-6 pt-4 border-t border-border/30 text-center">
               <p className="text-xs text-muted-foreground">
-                Programa Pro Inova • Linha Temática: Transporte Público
+                Sistema Integrado de Manutenção Automotiva Preventiva
               </p>
             </div>
           </CardContent>

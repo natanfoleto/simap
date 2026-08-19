@@ -41,7 +41,7 @@ export default function PreventivePlansPage({ params }: { params: { tenantSlug: 
               Planos de Manutenção Preventiva
             </h1>
             <Badge variant="success" className="text-xs">
-              Mês 2 Validado
+              Ativo
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
@@ -121,7 +121,7 @@ export default function PreventivePlansPage({ params }: { params: { tenantSlug: 
                   {plan.name}
                 </CardTitle>
                 <CardDescription className="text-xs line-clamp-2">
-                  {plan.description || "Plano oficial validado no Mês 2 do programa Pro Inova."}
+                  {plan.description || "Plano oficial de manutenção preventiva."}
                 </CardDescription>
               </CardHeader>
 

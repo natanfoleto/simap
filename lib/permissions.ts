@@ -20,7 +20,6 @@ export type PermissionKey =
   | "veiculos:criar"
   | "veiculos:editar"
   | "veiculos:inativar"
-  | "veiculos:importar"
   | "quilometragem:ver"
   | "quilometragem:registrar"
   | "quilometragem:corrigir"
@@ -58,7 +57,6 @@ export const ROLE_DEFAULT_PERMISSIONS: Record<Role, PermissionKey[]> = {
     "veiculos:criar",
     "veiculos:editar",
     "veiculos:inativar",
-    "veiculos:importar",
     "quilometragem:ver",
     "quilometragem:registrar",
     "quilometragem:corrigir",
@@ -95,7 +93,6 @@ export const ROLE_DEFAULT_PERMISSIONS: Record<Role, PermissionKey[]> = {
     "veiculos:criar",
     "veiculos:editar",
     "veiculos:inativar",
-    "veiculos:importar",
     "quilometragem:ver",
     "quilometragem:registrar",
     "quilometragem:corrigir",

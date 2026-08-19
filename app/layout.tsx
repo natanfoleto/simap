@@ -7,7 +7,10 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "SIMAP — Sistema Municipal de Manutenção Preventiva",
-  description: "Gestão, controle e auditoria preventiva da frota pública municipal — Pro Inova Jaborandi/SP",
+  description: "Gestão, controle e auditoria preventiva da frota pública municipal.",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({

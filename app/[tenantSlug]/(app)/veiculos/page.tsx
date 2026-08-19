@@ -15,7 +15,6 @@ import { useToast } from "@/components/ui/use-toast";
 import {
   Truck,
   Plus,
-  FileSpreadsheet,
   Download,
   Search,
   ChevronLeft,
@@ -115,13 +114,6 @@ export default function VehiclesPage({ params }: { params: { tenantSlug: string 
             <Download className="h-4 w-4 text-primary" />
             Exportar CSV
           </Button>
-
-          <Link href={`/${params.tenantSlug}/veiculos/importar`}>
-            <Button variant="outline" className="rounded-2xl gap-2 shadow-sm">
-              <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-              Importar Planilha
-            </Button>
-          </Link>
 
           <Link href={`/${params.tenantSlug}/veiculos/novo`}>
             <Button className="rounded-2xl gap-2 shadow-md shadow-primary/20">
@@ -242,19 +234,13 @@ export default function VehiclesPage({ params }: { params: { tenantSlug: string 
               </div>
               <h3 className="text-base font-bold text-foreground">Nenhum veículo encontrado</h3>
               <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                Não foram encontrados veículos para os filtros aplicados ou a frota ainda não foi importada.
+                Não foram encontrados veículos para os filtros aplicados.
               </p>
               <div className="pt-2 flex justify-center gap-3">
-                <Link href={`/${params.tenantSlug}/veiculos/importar`}>
-                  <Button variant="outline" size="sm" className="rounded-xl gap-2">
-                    <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
-                    Importar Planilha Oficial
-                  </Button>
-                </Link>
                 <Link href={`/${params.tenantSlug}/veiculos/novo`}>
                   <Button size="sm" className="rounded-xl gap-2">
                     <Plus className="h-4 w-4" />
-                    Cadastrar Manualmente
+                    Cadastrar Veículo
                   </Button>
                 </Link>
               </div>

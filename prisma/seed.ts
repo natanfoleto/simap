@@ -4,7 +4,6 @@ import {
   VehicleCategory,
   VehicleStatus,
   Criticality,
-  MilestoneStatus,
   OdometerSource,
   MaintenanceType,
   OrderStatus,
@@ -34,24 +33,7 @@ async function main() {
 
   console.log(`✅ Tenant configurado: ${tenant.name} (${tenant.slug})`);
 
-  // 2. Criar ou atualizar Projeto Institucional
-  const existingProject = await prisma.project.findFirst({
-    where: { tenantId: tenant.id },
-  });
-
-  if (!existingProject) {
-    await prisma.project.create({
-      data: {
-        tenantId: tenant.id,
-        title: "Implementação de Manutenção Preventiva nos veículos públicos do município",
-        systemName: "SIMAP",
-        durationMonths: 8,
-        theme: "Transporte Público",
-      },
-    });
-  }
-
-  // 3. Configurações do Projeto (Linha de base e metas)
+  // 2. Parâmetros e Metas Financeiras da Frota Municipal
   const settings = [
     { key: "BASELINE_YEAR", value: "2025", description: "Ano de referência da linha de base financeira" },
     { key: "BASELINE_AMOUNT", value: "285000.00", description: "Valor anual histórico em manutenção corretiva (R$)" },
@@ -60,7 +42,7 @@ async function main() {
   ];
 
   for (const s of settings) {
-    await prisma.projectSetting.upsert({
+    await prisma.tenantSetting.upsert({
       where: {
         tenantId_key: {
           tenantId: tenant.id,
@@ -79,107 +61,7 @@ async function main() {
       },
     });
   }
-  console.log("✅ Configurações de linha de base e meta registradas");
-
-  // 4. Marcos Institucionais do Pro Inova (M1 e M2 validados; M3 a M8 pendentes)
-  const milestones = [
-    {
-      monthNumber: 1,
-      title: "Mês 1: Diagnóstico da Frota",
-      deliverable: "Diagnóstico completo e levantamento dos 97 veículos públicos",
-      evidence: "Inventário da frota, classificação por categoria e relatório de situação",
-      status: MilestoneStatus.VALIDADO,
-      completionPercentage: 100,
-      validatedAt: new Date("2025-01-31T23:59:59Z"),
-    },
-    {
-      monthNumber: 2,
-      title: "Mês 2: Plano de Manutenção Preventiva",
-      deliverable: "Elaboração e validação dos planos de manutenção preventiva",
-      evidence: "Tabela de periodicidade e checklist preliminar por categoria",
-      status: MilestoneStatus.VALIDADO,
-      completionPercentage: 100,
-      validatedAt: new Date("2025-02-28T23:59:59Z"),
-    },
-    {
-      monthNumber: 3,
-      title: "Mês 3: Implantação da Preventiva e Operação Controlada",
-      deliverable: "Início da rotina operacional em grupo piloto com checklists e ordens",
-      evidence: "Ordens de serviço executadas e registros de hodômetro consistentes",
-      status: MilestoneStatus.PENDENTE,
-      completionPercentage: 0,
-    },
-    {
-      monthNumber: 4,
-      title: "Mês 4: Monitoramento, Ajustes e Visão Financeira",
-      deliverable: "Acompanhamento de custos, corretivas vs preventivas e calibração",
-      evidence: "Relatório gerencial com custos, disponibilidade e indicadores parciais",
-      status: MilestoneStatus.PENDENTE,
-      completionPercentage: 0,
-    },
-    {
-      monthNumber: 5,
-      title: "Mês 5: 1º Relatório Executivo de Desempenho",
-      deliverable: "1º Relatório Executivo consolidando cenário anterior vs pós-implantação",
-      evidence: "Comparativo de intervenções, custos por km e evolução da disponibilidade",
-      status: MilestoneStatus.PENDENTE,
-      completionPercentage: 0,
-    },
-    {
-      monthNumber: 6,
-      title: "Mês 6: Análise de Eficiência Operacional da Frota",
-      deliverable: "Mapeamento dos veículos mais críticos por custo e tempo de parada",
-      evidence: "Classificação por criticidade e matriz de eficiência segmentada",
-      status: MilestoneStatus.PENDENTE,
-      completionPercentage: 0,
-    },
-    {
-      monthNumber: 7,
-      title: "Mês 7: Relatório de Otimização e Recomendações",
-      deliverable: "Propostas formais de melhoria, revisão de uso e ajustes de periodicidade",
-      evidence: "Relatório formal de recomendações e simulações orçamentárias",
-      status: MilestoneStatus.PENDENTE,
-      completionPercentage: 0,
-    },
-    {
-      monthNumber: 8,
-      title: "Mês 8: Relatório Consolidado ao Prefeito e Transparência",
-      deliverable: "Balanço dos 8 meses de execução e publicação no portal de transparência",
-      evidence: "Documento executivo final e painel público de indicadores agregados",
-      status: MilestoneStatus.PENDENTE,
-      completionPercentage: 0,
-    },
-  ];
-
-  for (const m of milestones) {
-    await prisma.projectMilestone.upsert({
-      where: {
-        tenantId_monthNumber: {
-          tenantId: tenant.id,
-          monthNumber: m.monthNumber,
-        },
-      },
-      update: {
-        title: m.title,
-        deliverable: m.deliverable,
-        evidence: m.evidence,
-        status: m.status,
-        completionPercentage: m.completionPercentage,
-        validatedAt: m.validatedAt,
-      },
-      create: {
-        tenantId: tenant.id,
-        monthNumber: m.monthNumber,
-        title: m.title,
-        deliverable: m.deliverable,
-        evidence: m.evidence,
-        status: m.status,
-        completionPercentage: m.completionPercentage,
-        validatedAt: m.validatedAt,
-      },
-    });
-  }
-  console.log("✅ 8 Marcos do Pro Inova sincronizados (M1 e M2 validados)");
+  console.log("✅ Parâmetros da frota e metas financeiras registradas");
 
   // 5. Usuários do Sistema
   const adminEmail = process.env.SEED_ADMIN_EMAIL || "admin@simap.local";
@@ -1912,7 +1794,7 @@ async function main() {
           reading: v.currentOdometer,
           source: OdometerSource.IMPORTACAO,
           readingDate: new Date("2025-01-31T10:00:00Z"),
-          notes: "Leitura base registrada no Inventário e Diagnóstico da Frota (Mês 1)",
+          notes: "Leitura base registrada no inventário inicial da frota",
         },
       });
     }
@@ -1920,13 +1802,13 @@ async function main() {
 
   console.log(`✅ Todos os ${initialFleet.length} veículos cadastrados com planos e hodômetros iniciais`);
 
-  // 9. Grupo Piloto Operacional (Mês 3 — Operação Controlada)
+  // 9. Grupo Piloto Operacional
   const pilotVehicles = initialFleet.filter((v) => v.isPilot);
   
   let pilotGroup = await prisma.pilotGroup.findFirst({
     where: {
       tenantId: tenant.id,
-      name: "Grupo Piloto — Operação Controlada M3",
+      name: "Grupo Piloto — Monitoramento Prioritário",
     },
   });
 
@@ -1934,7 +1816,7 @@ async function main() {
     pilotGroup = await prisma.pilotGroup.create({
       data: {
         tenantId: tenant.id,
-        name: "Grupo Piloto — Operação Controlada M3",
+        name: "Grupo Piloto — Monitoramento Prioritário",
         startDate: new Date("2025-03-01T00:00:00Z"),
         status: "ATIVO",
         notes: "Veículos prioritários selecionados para o início das rotinas de preventiva e checklists diários",

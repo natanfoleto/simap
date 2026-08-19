@@ -71,33 +71,6 @@ export const vehicleSchema = z.object({
 export type VehicleInput = z.infer<typeof vehicleSchema>;
 
 /**
- * Schema para validação linha a linha de CSV de Veículos
- */
-export const vehicleCsvRowSchema = z.object({
-  codigo_frota: z.string().min(1, "Código da frota ausente").trim().toUpperCase(),
-  placa: z.string().min(5, "Placa inválida").trim().toUpperCase(),
-  categoria: z.string().trim().toUpperCase().refine(
-    (val) => ["ONIBUS", "CARRO", "AMBULANCIA", "VAN", "CAMINHAO", "MOTOCICLETA", "MAQUINA", "OUTRO"].includes(val),
-    { message: "Categoria inválida. Use: ONIBUS, CARRO, AMBULANCIA, VAN, CAMINHAO, MOTOCICLETA, MAQUINA ou OUTRO" }
-  ),
-  marca: z.string().min(1, "Marca ausente").trim(),
-  modelo: z.string().min(1, "Modelo ausente").trim(),
-  ano: z.coerce.number().int().min(1960).max(new Date().getFullYear() + 2),
-  combustivel: z.string().min(1, "Combustível ausente").trim(),
-  finalidade: z.string().min(1, "Finalidade ausente").trim(),
-  setor: z.string().trim().optional(),
-  criticidade: z.string().trim().toUpperCase().refine(
-    (val) => !val || ["BAIXA", "MEDIA", "ALTA", "CRITICA"].includes(val),
-    { message: "Criticidade inválida. Use: BAIXA, MEDIA, ALTA ou CRITICA" }
-  ).optional(),
-  status: z.string().trim().toUpperCase().refine(
-    (val) => !val || ["ATIVO", "MANUTENCAO", "INATIVO"].includes(val),
-    { message: "Status inválido. Use: ATIVO, MANUTENCAO ou INATIVO" }
-  ).optional(),
-  observacoes: z.string().trim().optional(),
-});
-
-/**
  * Item de Plano Preventivo
  */
 export const preventivePlanItemSchema = z

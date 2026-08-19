@@ -64,7 +64,7 @@ export function Sidebar({ tenantSlug }: { tenantSlug: string }) {
       ],
     },
     {
-      title: "Operação Controlada (M3)",
+      title: "Operação Controlada",
       items: [
         {
           label: "Quilometragem",
@@ -96,7 +96,7 @@ export function Sidebar({ tenantSlug }: { tenantSlug: string }) {
       title: "Administração",
       items: [
         {
-          label: "Projeto & Metas",
+          label: "Parâmetros da Frota",
           href: `/${tenantSlug}/administracao/projeto`,
           icon: FolderGit2,
           active: pathname === `/${tenantSlug}/administracao/projeto`,
@@ -160,9 +160,6 @@ export function Sidebar({ tenantSlug }: { tenantSlug: string }) {
               <div className="flex flex-col overflow-hidden">
                 <div className="flex items-center gap-1.5">
                   <span className="text-lg font-black tracking-tight text-foreground leading-none">SIMAP</span>
-                  <span className="text-[10px] uppercase font-bold tracking-widest bg-primary/10 text-primary px-1.5 py-0.5 rounded-md">
-                    R0
-                  </span>
                 </div>
                 <span className="text-[11px] font-medium text-muted-foreground truncate mt-0.5">
                   Manutenção Preventiva
@@ -266,24 +263,19 @@ export function Sidebar({ tenantSlug }: { tenantSlug: string }) {
         </div>
 
         {/* Footer & Toggle Collapse Button - Altura fixa h-16 */}
-        <div className={cn("h-16 flex-shrink-0 border-t border-border/20 flex items-center", isCollapsed ? "p-2" : "p-3")}>
+        <div className={cn("h-16 flex-shrink-0 border-t border-border/20 flex items-center justify-center", isCollapsed ? "p-2" : "p-3")}>
           <Button
             variant="ghost"
             size="sm"
             onClick={toggleSidebar}
-            className={cn(
-              "w-full rounded-2xl text-muted-foreground hover:text-foreground hover:bg-accent/60 hidden md:flex items-center h-10",
-              isCollapsed ? "justify-center p-0" : "px-3.5 gap-2.5 text-xs justify-start font-medium"
-            )}
+            className="w-full rounded-2xl text-muted-foreground hover:text-foreground hover:bg-accent/60 hidden md:flex items-center justify-center h-10 p-0"
             title={isCollapsed ? "Expandir menu lateral" : "Recolher menu lateral"}
+            aria-label={isCollapsed ? "Expandir menu lateral" : "Recolher menu lateral"}
           >
             {isCollapsed ? (
               <PanelLeftOpen className="h-4 w-4" />
             ) : (
-              <>
-                <PanelLeftClose className="h-4 w-4" />
-                <span>Recolher Menu</span>
-              </>
+              <PanelLeftClose className="h-4 w-4" />
             )}
           </Button>
         </div>

@@ -32,7 +32,7 @@ export default function PilotGroupPage({ params }: { params: { tenantSlug: strin
   const vehicles = vehiclesData?.items || [];
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [name, setName] = useState("Grupo Piloto Mês 3 — Linha Escolar & Saúde");
+  const [name, setName] = useState("Grupo Prioritário — Transporte Escolar & Saúde");
   const [startDate, setStartDate] = useState(new Date().toISOString().split("T")[0]);
   const [selectedVehicleIds, setSelectedVehicleIds] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
@@ -87,14 +87,14 @@ export default function PilotGroupPage({ params }: { params: { tenantSlug: strin
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground">
-              Grupo Piloto — Operação Controlada
+              Grupo Piloto — Monitoramento Prioritário
             </h1>
-            <Badge variant="success" className="text-xs">
-              Mês 3
+            <Badge variant="default" className="text-xs">
+              Ativo
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
-            Conjunto selecionado de veículos para validação de checklists, hodômetro e preventiva assistida
+            Monitoramento intensivo de veículos estratégicos com checklists diários e preventivas prioritárias
           </p>
         </div>
 
@@ -115,7 +115,7 @@ export default function PilotGroupPage({ params }: { params: { tenantSlug: strin
           <ShieldAlert className="h-10 w-10 text-muted-foreground mx-auto" />
           <h3 className="text-base font-bold">Nenhum grupo piloto cadastrado</h3>
           <p className="text-xs text-muted-foreground">
-            Crie um grupo piloto para acompanhar de perto os veículos selecionados no Mês 3.
+            Crie um grupo piloto para acompanhar de perto os veículos prioritários da frota.
           </p>
           <Button onClick={() => setIsModalOpen(true)} variant="outline" className="rounded-xl mt-2 text-xs">
             Criar Grupo Piloto
@@ -194,7 +194,7 @@ export default function PilotGroupPage({ params }: { params: { tenantSlug: strin
             <DialogHeader>
               <DialogTitle>Criar Novo Grupo Piloto</DialogTitle>
               <DialogDescription>
-                Defina o nome do grupo e selecione os veículos participantes do Mês 3.
+                Defina o nome do grupo e selecione os veículos participantes.
               </DialogDescription>
             </DialogHeader>
 

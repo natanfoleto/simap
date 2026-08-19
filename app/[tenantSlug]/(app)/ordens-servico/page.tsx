@@ -64,14 +64,9 @@ export default function MaintenanceOrdersPage({ params }: { params: { tenantSlug
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground">
-              Ordens de Serviço de Manutenção
-            </h1>
-            <Badge variant="default" className="text-xs">
-              Mês 3
-            </Badge>
-          </div>
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground">
+            Ordens de Serviço de Manutenção
+          </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Controle operacional e financeiro de manutenções preventivas e corretivas da frota
           </p>
