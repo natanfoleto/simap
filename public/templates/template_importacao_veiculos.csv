@@ -1,0 +1,4 @@
+codigo_frota,placa,categoria,marca,modelo,ano,combustivel,finalidade,setor,criticidade,status,observacoes
+ONB-01,ABC1D23,ONIBUS,Mercedes-Benz,OF-1721,2021,DIESEL,Transporte Escolar,Educacao,ALTA,ATIVO,Veiculo da rota rural
+AMB-02,DEF4E56,AMBULANCIA,Renault,Master,2023,DIESEL,Atendimento de Emergencia,Saude,CRITICA,ATIVO,Ambulancia UTI
+CAR-03,GHI7F89,CARRO,Fiat,Mobi,2022,FLEX,Servicos Administrativos,Administracao,BAIXA,ATIVO,Uso geral do gabinete

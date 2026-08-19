@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: simap-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-simap}
+      POSTGRES_USER: ${POSTGRES_USER:-simap}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-troque_esta_senha}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - simap_postgres_data:/var/lib/postgresql/data
+    networks:
+      - simap-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-simap} -d ${POSTGRES_DB:-simap}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  simap-network:
+    name: simap-network
+    driver: bridge
+
+volumes:
+  simap_postgres_data:
+    name: simap_postgres_data

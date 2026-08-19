@@ -1,0 +1,602 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  GESTOR
+  OPERADOR
+  MOTORISTA
+  AUDITOR
+}
+
+enum VehicleCategory {
+  ONIBUS
+  CARRO
+  AMBULANCIA
+  VAN
+  CAMINHAO
+  MOTOCICLETA
+  MAQUINA
+  OUTRO
+}
+
+enum VehicleStatus {
+  ATIVO
+  MANUTENCAO
+  INATIVO
+}
+
+enum Criticality {
+  BAIXA
+  MEDIA
+  ALTA
+  CRITICA
+}
+
+enum MilestoneStatus {
+  VALIDADO
+  EM_ANDAMENTO
+  PENDENTE
+}
+
+enum MaintenanceType {
+  PREVENTIVA
+  CORRETIVA
+  INSPECAO
+}
+
+enum OrderStatus {
+  RASCUNHO
+  AGENDADA
+  ABERTA
+  EM_EXECUCAO
+  CONCLUIDA
+  CANCELADA
+}
+
+enum InspectionAnswerStatus {
+  OK
+  ALERTA
+  CRITICO
+  NAO_SE_APLICA
+}
+
+enum OdometerSource {
+  MANUAL
+  CHECKLIST
+  ORDEM_SERVICO
+  IMPORTACAO
+}
+
+enum PilotStatus {
+  ATIVO
+  CONCLUIDO
+  SUSPENSO
+}
+
+model Tenant {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  cnpj      String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users                  User[]
+  vehicles               Vehicle[]
+  preventivePlans        PreventivePlan[]
+  preventivePlanItems    PreventivePlanItem[]
+  vehiclePreventivePlans VehiclePreventivePlan[]
+  projects               Project[]
+  projectMilestones      ProjectMilestone[]
+  projectSettings        ProjectSetting[]
+  auditLogs              AuditLog[]
+  loginLogs              LoginLog[]
+  vehicleAssignments     VehicleAssignment[]
+  pilotGroups            PilotGroup[]
+  pilotGroupVehicles     PilotGroupVehicle[]
+  odometerReadings       OdometerReading[]
+  checklistTemplates     ChecklistTemplate[]
+  checklistTemplateItems ChecklistTemplateItem[]
+  inspections            Inspection[]
+  inspectionAnswers      InspectionAnswer[]
+  maintenanceOrders      MaintenanceOrder[]
+  maintenanceOrderItems  MaintenanceOrderItem[]
+  vehicleDowntimes       VehicleDowntime[]
+
+  @@index([slug])
+  @@index([active])
+}
+
+model User {
+  id           String   @id @default(cuid())
+  tenantId     String?
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(OPERADOR)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant             Tenant?             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  permissions        UserPermission[]
+  auditLogs          AuditLog[]
+  loginLogs          LoginLog[]
+  vehicleAssignments VehicleAssignment[]
+  odometerReadings   OdometerReading[]
+  inspections        Inspection[]
+  assignedOrders     MaintenanceOrder[]  @relation("AssignedOrders")
+
+  @@index([tenantId])
+  @@index([email])
+  @@index([role])
+}
+
+model UserPermission {
+  id        String   @id @default(cuid())
+  userId    String
+  module    String
+  action    String
+  granted   Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, module, action])
+  @@index([userId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  tenantId  String
+  userId    String?
+  action    String
+  entity    String
+  entityId  String
+  oldValues Json?
+  newValues Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([entity, entityId])
+  @@index([createdAt])
+}
+
+model LoginLog {
+  id        String   @id @default(cuid())
+  tenantId  String?
+  userId    String?
+  email     String
+  ipAddress String?
+  userAgent String?
+  success   Boolean
+  reason    String?
+  createdAt DateTime @default(now())
+
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([email])
+  @@index([createdAt])
+}
+
+model Project {
+  id             String   @id @default(cuid())
+  tenantId       String
+  title          String
+  systemName     String   @default("SIMAP")
+  durationMonths Int      @default(8)
+  theme          String   @default("Transporte Público")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+model ProjectMilestone {
+  id                   String          @id @default(cuid())
+  tenantId             String
+  monthNumber          Int
+  title                String
+  deliverable          String
+  evidence             String
+  status               MilestoneStatus @default(PENDENTE)
+  completionPercentage Decimal         @default(0) @db.Decimal(5, 2)
+  validatedAt          DateTime?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  tenant               Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, monthNumber])
+  @@index([tenantId])
+  @@index([monthNumber])
+}
+
+model ProjectSetting {
+  id          String   @id @default(cuid())
+  tenantId    String
+  key         String
+  value       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, key])
+  @@index([tenantId])
+}
+
+model Vehicle {
+  id              String          @id @default(cuid())
+  tenantId        String
+  fleetCode       String
+  plate           String
+  category        VehicleCategory
+  brand           String
+  model           String
+  year            Int
+  fuelType        String
+  purpose         String
+  department      String?
+  criticality     Criticality     @default(MEDIA)
+  status          VehicleStatus   @default(ATIVO)
+  currentOdometer Int             @default(0)
+  isPilot         Boolean         @default(false)
+  active          Boolean         @default(true)
+  notes           String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  tenant          Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  preventivePlans VehiclePreventivePlan[]
+  assignments     VehicleAssignment[]
+  pilotGroupLinks PilotGroupVehicle[]
+  odometerReadings OdometerReading[]
+  inspections     Inspection[]
+  maintenanceOrders MaintenanceOrder[]
+  downtimes       VehicleDowntime[]
+
+  @@unique([tenantId, plate])
+  @@unique([tenantId, fleetCode])
+  @@index([tenantId])
+  @@index([category])
+  @@index([status])
+  @@index([active])
+}
+
+model PreventivePlan {
+  id          String          @id @default(cuid())
+  tenantId    String
+  name        String
+  category    VehicleCategory
+  description String?
+  version     Int             @default(1)
+  isPublished Boolean         @default(true)
+  active      Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  tenant           Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  items            PreventivePlanItem[]
+  assignedVehicles VehiclePreventivePlan[]
+  maintenanceOrders MaintenanceOrder[]
+
+  @@index([tenantId])
+  @@index([category])
+  @@index([active])
+}
+
+model PreventivePlanItem {
+  id            String          @id @default(cuid())
+  planId        String
+  tenantId      String
+  name          String
+  description   String?
+  intervalKm    Int?
+  intervalDays  Int?
+  toleranceKm   Int?
+  toleranceDays Int?
+  priority      Criticality     @default(MEDIA)
+  isMandatory   Boolean         @default(true)
+  active        Boolean         @default(true)
+  orderIndex    Int             @default(0)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  plan          PreventivePlan  @relation(fields: [planId], references: [id], onDelete: Cascade)
+  tenant        Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  maintenanceOrders MaintenanceOrder[]
+
+  @@index([planId])
+  @@index([tenantId])
+}
+
+model VehiclePreventivePlan {
+  id         String         @id @default(cuid())
+  tenantId   String
+  vehicleId  String
+  planId     String
+  assignedAt DateTime       @default(now())
+  active     Boolean        @default(true)
+
+  tenant     Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  vehicle    Vehicle        @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  plan       PreventivePlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([vehicleId, planId])
+  @@index([tenantId])
+  @@index([vehicleId])
+  @@index([planId])
+}
+
+// ----------------------------------------------------
+// MODELOS DO ROADMAP R1 — OPERAÇÃO CONTROLADA (MÊS 3)
+// ----------------------------------------------------
+
+model VehicleAssignment {
+  id         String   @id @default(cuid())
+  tenantId   String
+  vehicleId  String
+  userId     String
+  active     Boolean  @default(true)
+  assignedAt DateTime @default(now())
+  notes      String?
+
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  vehicle    Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([vehicleId, userId])
+  @@index([tenantId])
+  @@index([vehicleId])
+  @@index([userId])
+}
+
+model PilotGroup {
+  id          String      @id @default(cuid())
+  tenantId    String
+  name        String
+  startDate   DateTime
+  endDate     DateTime?
+  status      PilotStatus @default(ATIVO)
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  tenant      Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  vehicles    PilotGroupVehicle[]
+
+  @@index([tenantId])
+  @@index([status])
+}
+
+model PilotGroupVehicle {
+  id         String     @id @default(cuid())
+  tenantId   String
+  groupId    String
+  vehicleId  String
+  active     Boolean    @default(true)
+  addedAt    DateTime   @default(now())
+
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  pilotGroup PilotGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  vehicle    Vehicle    @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, vehicleId])
+  @@index([tenantId])
+  @@index([groupId])
+  @@index([vehicleId])
+}
+
+model OdometerReading {
+  id               String         @id @default(cuid())
+  tenantId         String
+  vehicleId        String
+  userId           String?
+  reading          Int
+  readingDate      DateTime       @default(now())
+  source           OdometerSource @default(MANUAL)
+  isCorrection     Boolean        @default(false)
+  correctionReason String?
+  notes            String?
+  createdAt        DateTime       @default(now())
+
+  tenant           Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  vehicle          Vehicle        @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  user             User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([vehicleId])
+  @@index([readingDate])
+  @@index([createdAt])
+}
+
+model ChecklistTemplate {
+  id          String          @id @default(cuid())
+  tenantId    String
+  name        String
+  category    VehicleCategory
+  description String?
+  active      Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  tenant      Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  items       ChecklistTemplateItem[]
+  inspections Inspection[]
+
+  @@index([tenantId])
+  @@index([category])
+}
+
+model ChecklistTemplateItem {
+  id          String            @id @default(cuid())
+  tenantId    String
+  templateId  String
+  title       String
+  description String?
+  orderIndex  Int               @default(0)
+  active      Boolean           @default(true)
+
+  tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  template    ChecklistTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  answers     InspectionAnswer[]
+
+  @@index([tenantId])
+  @@index([templateId])
+}
+
+model Inspection {
+  id          String            @id @default(cuid())
+  tenantId    String
+  vehicleId   String
+  userId      String
+  templateId  String
+  odometer    Int
+  status      InspectionAnswerStatus @default(OK)
+  hasAlert    Boolean           @default(false)
+  hasCritical Boolean           @default(false)
+  notes       String?
+  performedAt DateTime          @default(now())
+  createdAt   DateTime          @default(now())
+
+  tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  vehicle     Vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template    ChecklistTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  answers     InspectionAnswer[]
+  orders      MaintenanceOrder[]
+
+  @@index([tenantId])
+  @@index([vehicleId])
+  @@index([userId])
+  @@index([performedAt])
+}
+
+model InspectionAnswer {
+  id             String                 @id @default(cuid())
+  tenantId       String
+  inspectionId   String
+  templateItemId String
+  status         InspectionAnswerStatus @default(OK)
+  notes          String?
+  photoUrl       String?
+
+  tenant         Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  inspection     Inspection             @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  templateItem   ChecklistTemplateItem  @relation(fields: [templateItemId], references: [id], onDelete: Cascade)
+
+  @@unique([inspectionId, templateItemId])
+  @@index([tenantId])
+  @@index([inspectionId])
+}
+
+model MaintenanceOrder {
+  id                String          @id @default(cuid())
+  tenantId          String
+  vehicleId         String
+  orderNumber       String
+  type              MaintenanceType @default(CORRETIVA)
+  status            OrderStatus     @default(ABERTA)
+  priority          Criticality     @default(MEDIA)
+  origin            String          @default("OPERACIONAL")
+  planId            String?
+  planItemId        String?
+  inspectionId      String?
+  description       String
+  diagnosis         String?
+  openedAt          DateTime        @default(now())
+  scheduledDate     DateTime?
+  startedAt         DateTime?
+  completedAt       DateTime?
+  canceledAt        DateTime?
+  cancelReason      String?
+  odometerAtOpen    Int?
+  odometerAtClose   Int?
+  partsCost         Decimal         @default(0) @db.Decimal(12, 2)
+  laborCost         Decimal         @default(0) @db.Decimal(12, 2)
+  otherCost         Decimal         @default(0) @db.Decimal(12, 2)
+  totalCost         Decimal         @default(0) @db.Decimal(12, 2)
+  providerName      String?
+  documentReference String?
+  assignedUserId    String?
+  notes             String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  tenant            Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  vehicle           Vehicle         @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  plan              PreventivePlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  planItem          PreventivePlanItem? @relation(fields: [planItemId], references: [id], onDelete: SetNull)
+  inspection        Inspection?     @relation(fields: [inspectionId], references: [id], onDelete: SetNull)
+  assignedUser      User?           @relation("AssignedOrders", fields: [assignedUserId], references: [id], onDelete: SetNull)
+  items             MaintenanceOrderItem[]
+  downtimes         VehicleDowntime[]
+
+  @@unique([tenantId, orderNumber])
+  @@index([tenantId])
+  @@index([vehicleId])
+  @@index([status])
+  @@index([type])
+  @@index([openedAt])
+  @@index([completedAt])
+}
+
+model MaintenanceOrderItem {
+  id          String           @id @default(cuid())
+  tenantId    String
+  orderId     String
+  description String
+  itemType    String           @default("PECA") // PECA, SERVICO, OUTRO
+  quantity    Decimal          @default(1) @db.Decimal(10, 2)
+  unitCost    Decimal          @default(0) @db.Decimal(12, 2)
+  totalCost   Decimal          @default(0) @db.Decimal(12, 2)
+  createdAt   DateTime         @default(now())
+
+  tenant      Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  order       MaintenanceOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([orderId])
+}
+
+model VehicleDowntime {
+  id          String            @id @default(cuid())
+  tenantId    String
+  vehicleId   String
+  orderId     String?
+  startDate   DateTime          @default(now())
+  endDate     DateTime?
+  reason      String
+  notes       String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  vehicle     Vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  order       MaintenanceOrder? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([vehicleId])
+  @@index([startDate])
+}
