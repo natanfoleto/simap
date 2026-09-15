@@ -21,6 +21,7 @@ import {
   DollarSign,
   ArrowRight,
   CheckCircle2,
+  BarChart3,
 } from "lucide-react";
 
 export default function DashboardPage({ params }: { params: { tenantSlug: string } }) {
@@ -115,7 +116,35 @@ export default function DashboardPage({ params }: { params: { tenantSlug: string
       bgColor: "bg-indigo-500/10",
       stats: "Monitoramento intensivo",
     },
+    {
+      title: "Visão Financeira & KPIs",
+      description: "Custos consolidados, proporção preventiva vs corretiva e custo por km.",
+      href: `/${params.tenantSlug}/financeiro`,
+      icon: BarChart3,
+      color: "text-emerald-600 dark:text-emerald-400",
+      bgColor: "bg-emerald-500/10",
+      stats: "Mês 4 (R2)",
+    },
+    {
+      title: "Orçamento Anual",
+      description: "Planejamento orçamentário anual, linha de base e meta de 20% de economia.",
+      href: `/${params.tenantSlug}/financeiro/orcamento`,
+      icon: DollarSign,
+      color: "text-amber-600 dark:text-amber-400",
+      bgColor: "bg-amber-500/10",
+      stats: "Planejado vs Realizado",
+    },
+    {
+      title: "Inconsistências de Dados",
+      description: "Auditoria de OS sem custos, odômetros pendentes e paradas em aberto.",
+      href: `/${params.tenantSlug}/inconsistencias`,
+      icon: AlertTriangle,
+      color: "text-rose-600 dark:text-rose-400",
+      bgColor: "bg-rose-500/10",
+      stats: "Qualidade de dados",
+    },
   ];
+
 
   return (
     <div className="space-y-8">

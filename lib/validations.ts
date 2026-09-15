@@ -220,3 +220,59 @@ export const vehicleAssignmentSchema = z.object({
   notes: z.string().max(300).optional().nullable(),
 });
 
+/**
+ * Orçamento Anual de Manutenção (R2)
+ */
+export const annualBudgetSchema = z.object({
+  year: z.coerce.number().int().min(2020).max(2035),
+  baselineAmount: z.coerce.number().min(0, "Linha de base deve ser positiva").default(285000),
+  targetReductionPercentage: z.coerce.number().min(0).max(100).default(20),
+  plannedPreventive: z.coerce.number().min(0, "Valor preventivo planejado não pode ser negativo").default(0),
+  plannedCorrective: z.coerce.number().min(0, "Valor corretivo planejado não pode ser negativo").default(0),
+  plannedContingency: z.coerce.number().min(0, "Reserva de contingência não pode ser negativa").default(0),
+  notes: z.string().max(1000).optional().nullable(),
+});
+
+export type AnnualBudgetInput = z.infer<typeof annualBudgetSchema>;
+
+/**
+ * Fechamento de Snapshot Mensal de KPI (R2)
+ */
+export const kpiSnapshotCreateSchema = z.object({
+  referenceYear: z.coerce.number().int().min(2020).max(2035),
+  referenceMonth: z.coerce.number().int().min(1).max(12),
+  notes: z.string().max(1000).optional().nullable(),
+});
+
+export type KpiSnapshotCreateInput = z.infer<typeof kpiSnapshotCreateSchema>;
+
+/**
+ * Registro de Atualizações Mensais do Projeto — Mês 4 em diante (R2)
+ */
+export const monthlyProjectUpdateSchema = z.object({
+  referenceYear: z.coerce.number().int().min(2020).max(2035),
+  referenceMonth: z.coerce.number().int().min(1).max(12),
+  advancesSummary: z.string().min(5, "Resumo de avanços do mês é obrigatório").max(3000).trim(),
+  nextSteps: z.string().min(5, "Próximos passos são obrigatórios").max(3000).trim(),
+  observations: z.string().max(2000).optional().nullable(),
+});
+
+export type MonthlyProjectUpdateInput = z.infer<typeof monthlyProjectUpdateSchema>;
+
+/**
+ * Filtros do Dashboard e Relatório Financeiro (R2)
+ */
+export const financialFilterSchema = z.object({
+  period: z.enum(["30d", "90d", "year", "custom"]).default("year"),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  category: vehicleCategoryEnum.optional(),
+  vehicleId: z.string().optional(),
+  maintenanceType: z.enum(["PREVENTIVA", "CORRETIVA", "INSPECAO"]).optional(),
+  status: z.string().optional(),
+  pilotOnly: z.coerce.boolean().optional(),
+  department: z.string().optional(),
+});
+
+export type FinancialFilterInput = z.infer<typeof financialFilterSchema>;
+

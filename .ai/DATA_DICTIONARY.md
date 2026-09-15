@@ -109,3 +109,48 @@
 | `ipAddress` | `String` | Sim | IP de origem |
 | `userAgent` | `String` | Sim | Agente do cliente |
 | `createdAt` | `DateTime` | Não | Carimbo de data/hora (UTC) |
+
+### `AnnualMaintenanceBudget` (Orçamento Anual — R2)
+| Campo | Tipo | Nulo | Descrição |
+| :--- | :--- | :--- | :--- |
+| `id` | `String (cuid)` | Não | Identificador único |
+| `tenantId` | `String` | Não | Tenant vinculado |
+| `year` | `Int` | Não | Ano do exercício orçamentário |
+| `baselineAmount` | `Decimal(12,2)` | Não | Valor da linha de base de referência histórica (R$) |
+| `targetReductionPercentage` | `Decimal(5,2)` | Não | Meta percentual de redução (padrão: 20%) |
+| `plannedPreventive` | `Decimal(12,2)` | Não | Dotação planejada para manutenções preventivas (R$) |
+| `plannedCorrective` | `Decimal(12,2)` | Não | Dotação planejada para manutenções corretivas (R$) |
+| `plannedContingency` | `Decimal(12,2)` | Não | Dotação reservada para contingência (R$) |
+| `notes` | `String` | Sim | Observações adicionais da dotação |
+
+### `KpiSnapshot` (Snapshot Mensal Congelado de KPIs — R2)
+| Campo | Tipo | Nulo | Descrição |
+| :--- | :--- | :--- | :--- |
+| `id` | `String (cuid)` | Não | Identificador único |
+| `tenantId` | `String` | Não | Tenant vinculado |
+| `referenceYear` | `Int` | Não | Ano de referência |
+| `referenceMonth` | `Int` | Não | Mês de referência (1 a 12) |
+| `totalCost` | `Decimal(12,2)` | Não | Custo total consolidado no mês (R$) |
+| `preventiveCost` | `Decimal(12,2)` | Não | Custo com manutenções preventivas no mês (R$) |
+| `correctiveCost` | `Decimal(12,2)` | Não | Custo com manutenções corretivas no mês (R$) |
+| `totalOrders` | `Int` | Não | Quantidade total de ordens abertas/executadas |
+| `totalKmDriven` | `Int` | Sim | Quilometragem líquida rodada pela frota no mês |
+| `costPerKm` | `Decimal(12,4)` | Sim | Custo médio apurado por km rodado (R$/km) |
+| `availabilityPercentage` | `Decimal(5,2)` | Não | Taxa de disponibilidade líquida da frota (%) |
+| `totalDowntimeHours` | `Decimal(10,2)` | Não | Horas líquidas de parada sem contagem dupla |
+| `preventiveCompliancePercentage` | `Decimal(5,2)` | Não | Taxa de cumprimento das preventivas programadas (%) |
+| `dataQualityScore` | `Decimal(5,2)` | Não | Pontuação de integridade dos registros operacionais |
+| `metricsData` | `Json` | Não | DTO tipado imutável com todos os indicadores congelados |
+| `isFrozen` | `Boolean` | Não | Indica que o snapshot está fechado e inviolável |
+
+### `MonthlyProjectUpdate` (Registro de Governança Mensal — R2)
+| Campo | Tipo | Nulo | Descrição |
+| :--- | :--- | :--- | :--- |
+| `id` | `String (cuid)` | Não | Identificador único |
+| `tenantId` | `String` | Não | Tenant vinculado |
+| `referenceYear` | `Int` | Não | Ano de referência |
+| `referenceMonth` | `Int` | Não | Mês de referência |
+| `advancesSummary` | `String` | Não | Resumo dos avanços e entregas do mês |
+| `nextSteps` | `String` | Não | Próximos passos e metas para o mês subsequente |
+| `observations` | `String` | Sim | Observações técnicas e recomendações para a prefeitura |
+

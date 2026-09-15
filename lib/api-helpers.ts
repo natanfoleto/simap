@@ -37,6 +37,10 @@ export function apiFailure<TDetails = unknown>(
   return NextResponse.json(responsePayload, { status });
 }
 
+export function badRequestResponse(message = "Requisição inválida.", details?: unknown) {
+  return apiFailure(message, "BAD_REQUEST", 400, details);
+}
+
 export function unauthorizedResponse(message = "Autenticação obrigatória para acessar este recurso.") {
   return apiFailure(message, "UNAUTHORIZED", 401);
 }

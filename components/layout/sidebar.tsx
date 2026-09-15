@@ -22,7 +22,25 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   X,
+  BarChart3,
+  DollarSign,
+  AlertCircle,
 } from "lucide-react";
+
+interface NavItem {
+  label: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  active: boolean;
+  adminOnly?: boolean;
+  adminOrAuditor?: boolean;
+  financeiroVer?: boolean;
+}
+
+interface NavGroup {
+  title: string;
+  items: NavItem[];
+}
 
 export function Sidebar({ tenantSlug }: { tenantSlug: string }) {
   const pathname = usePathname();
@@ -34,7 +52,8 @@ export function Sidebar({ tenantSlug }: { tenantSlug: string }) {
     setIsMobileOpen(false);
   }, [pathname, setIsMobileOpen]);
 
-  const navGroups = [
+  const navGroups: NavGroup[] = [
+
     {
       title: "Geral",
       items: [
@@ -89,6 +108,31 @@ export function Sidebar({ tenantSlug }: { tenantSlug: string }) {
           href: `/${tenantSlug}/piloto`,
           icon: ShieldAlert,
           active: pathname.startsWith(`/${tenantSlug}/piloto`),
+        },
+      ],
+    },
+    {
+      title: "Monitoramento & Finanças",
+      items: [
+        {
+          label: "Visão Financeira & KPIs",
+          href: `/${tenantSlug}/financeiro`,
+          icon: BarChart3,
+          active: pathname === `/${tenantSlug}/financeiro`,
+          financeiroVer: true,
+        },
+        {
+          label: "Orçamento Anual",
+          href: `/${tenantSlug}/financeiro/orcamento`,
+          icon: DollarSign,
+          active: pathname === `/${tenantSlug}/financeiro/orcamento`,
+          financeiroVer: true,
+        },
+        {
+          label: "Inconsistências de Dados",
+          href: `/${tenantSlug}/inconsistencias`,
+          icon: AlertCircle,
+          active: pathname === `/${tenantSlug}/inconsistencias`,
         },
       ],
     },
@@ -206,6 +250,14 @@ export function Sidebar({ tenantSlug }: { tenantSlug: string }) {
               }
               if (
                 item.adminOrAuditor &&
+                session?.user?.role !== "ADMIN" &&
+                session?.user?.role !== "GESTOR" &&
+                session?.user?.role !== "AUDITOR"
+              ) {
+                return false;
+              }
+              if (
+                item.financeiroVer &&
                 session?.user?.role !== "ADMIN" &&
                 session?.user?.role !== "GESTOR" &&
                 session?.user?.role !== "AUDITOR"

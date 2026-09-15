@@ -2037,8 +2037,96 @@ async function main() {
     }
   }
 
+  // 10. Orçamento Anual e Governança Financeira (Roadmap R2)
+  const existingBudget = await prisma.annualMaintenanceBudget.findFirst({
+    where: { tenantId: tenant.id, year: 2026 },
+  });
+
+  if (!existingBudget) {
+    await prisma.annualMaintenanceBudget.create({
+      data: {
+        tenantId: tenant.id,
+        year: 2026,
+        baselineAmount: 285000.0,
+        targetReductionPercentage: 20.0,
+        plannedPreventive: 148200.0, // 65% do teto meta de R$ 228.000,00
+        plannedCorrective: 57000.0,  // 25% do teto meta
+        plannedContingency: 22800.0, // 10% do teto meta
+        notes: "Orçamento oficial de manutenção para o exercício de 2026 com meta de redução de 20% vs. linha de base.",
+      },
+    });
+  }
+  console.log("✅ Orçamento anual de manutenção configurado para 2026");
+
+  // 11. Snapshot Mensal Histórico (R2)
+  const existingSnapshot = await prisma.kpiSnapshot.findFirst({
+    where: { tenantId: tenant.id, referenceYear: 2026, referenceMonth: 3 },
+  });
+
+  if (!existingSnapshot) {
+    await prisma.kpiSnapshot.create({
+      data: {
+        tenantId: tenant.id,
+        referenceYear: 2026,
+        referenceMonth: 3,
+        periodStart: new Date("2026-03-01T00:00:00Z"),
+        periodEnd: new Date("2026-03-31T23:59:59Z"),
+        totalCost: 1430.0,
+        preventiveCost: 930.0,
+        correctiveCost: 500.0,
+        totalOrders: 2,
+        preventiveOrders: 1,
+        correctiveOrders: 1,
+        totalKmDriven: 4500,
+        costPerKm: 0.3178,
+        availabilityPercentage: 98.5,
+        totalDowntimeHours: 6.5,
+        preventiveCompliancePercentage: 100.0,
+        dataQualityScore: 92.5,
+        isFrozen: true,
+        createdByUserId: adminUser.id,
+        notes: "Fechamento mensal de referência do Mês 3 arquivado para histórico de auditoria.",
+        metricsData: {
+          summary: {
+            totalCost: 1430.0,
+            preventiveCost: 930.0,
+            correctiveCost: 500.0,
+            totalOrders: 2,
+          },
+          frozenAt: "2026-04-01T00:00:00Z",
+          frozenBy: adminUser.email,
+        },
+      },
+    });
+  }
+  console.log("✅ Snapshot mensal arquivado para o Mês 3");
+
+  // 12. Registro Mensal de Governança do Projeto — Mês 4 (R2)
+  const existingUpdate = await prisma.monthlyProjectUpdate.findFirst({
+    where: { tenantId: tenant.id, referenceYear: 2026, referenceMonth: 4 },
+  });
+
+  if (!existingUpdate) {
+    await prisma.monthlyProjectUpdate.create({
+      data: {
+        tenantId: tenant.id,
+        referenceYear: 2026,
+        referenceMonth: 4,
+        advancesSummary:
+          "Implantação do módulo de monitoramento gerencial e visão financeira. Início da apuração sistemática do custo por quilômetro rodado e controle estrito das dotações orçamentárias (Preventiva vs. Corretiva).",
+        nextSteps:
+          "Consolidação do 1º Relatório Executivo de desempenho da frota (Mês 5) com comparativo formal antes/depois da implantação da manutenção preventiva.",
+        observations:
+          "A rotina diária de lançamento de odômetros nos veículos escolares e de saúde deve ser mantida com prioridade máxima para garantir 100% de fidedignidade analítica.",
+        createdByUserId: adminUser.id,
+      },
+    });
+  }
+  console.log("✅ Registro de governança do Mês 4 configurado");
+
   console.log("✨ Seed do SIMAP concluído com sucesso!");
 }
+
 
 main()
   .catch((e) => {

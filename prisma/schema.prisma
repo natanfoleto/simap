@@ -102,6 +102,9 @@ model Tenant {
   maintenanceOrders      MaintenanceOrder[]
   maintenanceOrderItems  MaintenanceOrderItem[]
   vehicleDowntimes       VehicleDowntime[]
+  annualBudgets          AnnualMaintenanceBudget[]
+  kpiSnapshots           KpiSnapshot[]
+  monthlyUpdates         MonthlyProjectUpdate[]
 
   @@index([slug])
   @@index([active])
@@ -554,3 +557,75 @@ model VehicleDowntime {
   @@index([vehicleId])
   @@index([startDate])
 }
+
+model AnnualMaintenanceBudget {
+  id                        String   @id @default(cuid())
+  tenantId                  String
+  year                      Int
+  baselineAmount            Decimal  @default(285000) @db.Decimal(12, 2)
+  targetReductionPercentage Decimal  @default(20) @db.Decimal(5, 2)
+  plannedPreventive         Decimal  @default(0) @db.Decimal(12, 2)
+  plannedCorrective         Decimal  @default(0) @db.Decimal(12, 2)
+  plannedContingency        Decimal  @default(0) @db.Decimal(12, 2)
+  notes                     String?
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  tenant                    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, year])
+  @@index([tenantId])
+  @@index([year])
+}
+
+model KpiSnapshot {
+  id                            String   @id @default(cuid())
+  tenantId                      String
+  referenceYear                 Int
+  referenceMonth                Int
+  periodStart                   DateTime
+  periodEnd                     DateTime
+  totalCost                     Decimal  @default(0) @db.Decimal(12, 2)
+  preventiveCost                Decimal  @default(0) @db.Decimal(12, 2)
+  correctiveCost                Decimal  @default(0) @db.Decimal(12, 2)
+  totalOrders                   Int      @default(0)
+  preventiveOrders              Int      @default(0)
+  correctiveOrders              Int      @default(0)
+  totalKmDriven                 Int?
+  costPerKm                     Decimal? @db.Decimal(12, 4)
+  availabilityPercentage        Decimal  @default(100) @db.Decimal(5, 2)
+  totalDowntimeHours            Decimal  @default(0) @db.Decimal(10, 2)
+  preventiveCompliancePercentage Decimal  @default(0) @db.Decimal(5, 2)
+  dataQualityScore              Decimal  @default(0) @db.Decimal(5, 2)
+  metricsData                   Json
+  isFrozen                      Boolean  @default(true)
+  createdByUserId               String?
+  notes                         String?
+  createdAt                     DateTime @default(now())
+  updatedAt                     DateTime @updatedAt
+
+  tenant                        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, referenceYear, referenceMonth])
+  @@index([tenantId])
+  @@index([referenceYear, referenceMonth])
+}
+
+model MonthlyProjectUpdate {
+  id              String   @id @default(cuid())
+  tenantId        String
+  referenceYear   Int
+  referenceMonth  Int
+  advancesSummary String
+  nextSteps       String
+  observations    String?
+  createdByUserId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, referenceYear, referenceMonth])
+  @@index([tenantId])
+}
+

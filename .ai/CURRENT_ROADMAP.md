@@ -1,27 +1,30 @@
-# Roadmap Atual: R1 — Operação Controlada (Mês 3)
+# Roadmap Atual: R2 — Monitoramento, Ajustes e Visão Financeira (Mês 4)
 
 ## 1. Objetivo
-Permitir que motoristas e operadores realizem registros de quilometragem com prevenção de regressão, executem checklists diários touch-friendly com ação imediata para abertura de OS corretiva em falhas críticas, operem ordens de serviço preventivas e corretivas com cálculo detalhado de custos (peças e mão de obra), monitorem paradas/indisponibilidade de viaturas e acompanhem a operação de grupos pilotos e a timeline integrada dos veículos.
+Transformar os registros operacionais (hodômetros, checklists e ordens de serviço) em indicadores consolidados e confiáveis de custo, frotas, disponibilidade e dotações orçamentárias. Apoiar a gestão municipal de Jaborandi/SP na transição para a manutenção preventiva com acompanhamento de metas financeiras, identificação clara de cobertura dos dados sem mascaramento de ausência como zero, controle de inconsistências e exportação executiva em PDF e CSV.
 
 ## 2. Status
 - **Status Geral:** CONCLUÍDO
-- **Data de Início:** 2026-08-19
-- **Data de Conclusão:** 2026-08-19
+- **Data de Início:** 2026-09-15
+- **Data de Conclusão:** 2026-09-15
 
-## 3. Itens Entregues no R1
-- [x] Modelagem relacional e migration versionada `20260819000001_roadmap_r1_operation`;
-- [x] Regras de domínio e validação de hodômetro não decrescente (`lib/domain/odometer.ts`);
-- [x] Motor de cálculo de vencimento preventivo pelo primeiro limite atingido (`lib/domain/maintenance-due.ts`);
-- [x] Templates padrão de checklist no seed para Ônibus, Ambulâncias, Carros e Caminhões;
-- [x] API e tela de registro e histórico de hodômetro (`/quilometragem`);
-- [x] API e tela de execução de checklists touch-friendly (`/checklists` e `/checklists/executar`);
-- [x] Ponte imediata de checklist crítico para abertura de OS Corretiva;
-- [x] API e telas de abertura, avanço de status, lançamento de peças/mão de obra e conclusão de Ordens de Serviço (`/ordens-servico`, `/novo`, `/[id]`);
-- [x] Registro e controle de indisponibilidade de viaturas (`VehicleDowntime`);
-- [x] API e tela de monitoramento de Grupo Piloto (`/piloto`);
-- [x] API e tela de Linha do Tempo visual integrada do veículo (`/veiculos/[id]/timeline`);
-- [x] Testes unitários com Vitest — 32 testes passando (100%);
-- [x] Validações estritas: `pnpm typecheck` (OK), `pnpm lint` (OK), `pnpm test` (OK), `pnpm build` (OK).
+## 3. Itens Entregues no R2
+- [x] Modelagem relacional e migration versionada `20260915000000_roadmap_r2_finance_monitoring` (`AnnualMaintenanceBudget`, `KpiSnapshot`, `MonthlyProjectUpdate`);
+- [x] Regras de domínio e validação segura de Custo por Km sem denominador inválido (`lib/domain/financial-indicators.ts`);
+- [x] Algoritmo de fusão de intervalos de indisponibilidade (*Interval Merging*) sem dupla contagem de paradas sobrepostas;
+- [x] Motor de avaliação de qualidade e integridade dos registros operacionais (`evaluateDataQuality`);
+- [x] Endpoint de análise financeira consolidada com filtros multidimensionais e comparativo percentual com período anterior (`/api/financial`);
+- [x] API e tela de gestão de Orçamento Anual de Manutenção (Planejado vs. Realizado, linha de base e meta de 20%) em `/financeiro/orcamento`;
+- [x] API e funcionalidade de congelamento de Snapshots Mensais imutáveis (`/api/kpi-snapshots`);
+- [x] API e formulário para registros mensais de governança e próximos passos do projeto (`/api/monthly-updates`);
+- [x] Painel de Auditoria e Diagnóstico de Inconsistências operacionais (`/inconsistencias`);
+- [x] Painel de Monitoramento & Visão Financeira com Recharts responsivos (Evolução de Custos, Distribuição por Categoria, Proporção Preventiva/Corretiva) em `/financeiro`;
+- [x] Gerador de Relatório Executivo em PDF diagramado com jsPDF e AutoTable (`lib/reports/financial-pdf.ts`);
+- [x] Exportação tabular em formato CSV dos dados de veículos e custos;
+- [x] Atualização de navegação lateral com controle de acesso RBAC (`financeiro:ver`);
+- [x] Seed idempotente para o ano de 2026 com orçamento, snapshot e relatório do Mês 4;
+- [x] Testes unitários com Vitest — 46 testes passando (100% de aprovação);
+- [x] Validações estritas de tipagem (`pnpm typecheck`) e testes automatizados (`pnpm test`).
 
 ## 4. Próximo Roadmap
-- **R2 — Mês 4: Monitoramento e Visão Financeira** (Aguardando autorização).
+- **R3 — Mês 5: 1º Relatório Executivo de Desempenho da Frota** (Aguardando autorização).

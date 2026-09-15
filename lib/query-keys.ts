@@ -49,4 +49,22 @@ export const queryKeys = {
     byUser: (userId: string) => ["assignments", "byUser", userId] as const,
     byVehicle: (vehicleId: string) => ["assignments", "byVehicle", vehicleId] as const,
   },
+  financial: {
+    summary: (filters: Record<string, unknown>) => ["financial", "summary", filters] as const,
+  },
+  budget: {
+    byYear: (year: number) => ["budget", "byYear", year] as const,
+  },
+  kpiSnapshots: {
+    all: ["kpiSnapshots"] as const,
+    list: (year?: number) => ["kpiSnapshots", "list", year] as const,
+  },
+  inconsistencies: {
+    all: ["inconsistencies"] as const,
+  },
+  monthlyUpdates: {
+    all: ["monthlyUpdates"] as const,
+    byMonth: (year: number, month: number) => ["monthlyUpdates", year, month] as const,
+  },
 };
+
