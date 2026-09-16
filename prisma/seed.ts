@@ -1780,12 +1780,13 @@ async function main() {
       });
     }
 
-    // Registrar leitura inicial de hodômetro se não houver nenhuma
-    const hasOdometer = await prisma.odometerReading.findFirst({
-      where: { vehicleId: vehicle.id },
+    // Registrar leituras de hodômetro do exercício de 2026
+    const has2026Reading = await prisma.odometerReading.findFirst({
+      where: { vehicleId: vehicle.id, readingDate: { gte: new Date("2026-01-01T00:00:00Z") } },
     });
 
-    if (!hasOdometer) {
+    if (!has2026Reading) {
+      // 1. Leitura base no início de 2026
       await prisma.odometerReading.create({
         data: {
           tenantId: tenant.id,
@@ -1793,9 +1794,37 @@ async function main() {
           userId: adminUser.id,
           reading: v.currentOdometer,
           source: OdometerSource.IMPORTACAO,
-          readingDate: new Date("2025-01-31T10:00:00Z"),
-          notes: "Leitura base registrada no inventário inicial da frota",
+          readingDate: new Date("2026-01-05T08:00:00Z"),
+          notes: "Leitura base do inventário inicial do exercício de 2026",
         },
+      });
+
+      // 2. Leitura atualizada recente (garante odômetros auditados nos últimos 30 dias)
+      let kmIncrement = 1800;
+      if (v.category === VehicleCategory.ONIBUS) kmIncrement = 5200;
+      else if (v.category === VehicleCategory.AMBULANCIA) kmIncrement = 4100;
+      else if (v.category === VehicleCategory.CAMINHAO) kmIncrement = 3100;
+      else if (v.category === VehicleCategory.VAN) kmIncrement = 3400;
+      else if (v.category === VehicleCategory.CARRO) kmIncrement = 2400;
+      else if (v.category === VehicleCategory.MAQUINA) kmIncrement = 600;
+
+      const latestOdometer = v.currentOdometer + kmIncrement;
+
+      await prisma.odometerReading.create({
+        data: {
+          tenantId: tenant.id,
+          vehicleId: vehicle.id,
+          userId: motoristaUser.id,
+          reading: latestOdometer,
+          source: OdometerSource.CHECKLIST,
+          readingDate: new Date("2026-09-01T07:00:00Z"),
+          notes: "Leitura registrada via Checklist Operacional (auditoria contínua)",
+        },
+      });
+
+      await prisma.vehicle.update({
+        where: { id: vehicle.id },
+        data: { currentOdometer: latestOdometer },
       });
     }
   }
@@ -1924,118 +1953,251 @@ async function main() {
     }
   }
 
-  // Criar Ordens de Serviço demonstrativas
-  const ambVehicle = createdVehicles["FFE3191"]; // Mercedes Sprinter Ambulância
-  if (ambVehicle) {
-    const existingOrder = await prisma.maintenanceOrder.findFirst({
-      where: { tenantId: tenant.id, orderNumber: "OS-2025-001" },
+  // 11.2 Ordens de Serviço Demonstrativas do Exercício de 2026 (Mês 4) — 100% dos Gastos Registrados
+  const orders2026 = [
+    {
+      orderNumber: "OS-2026-001",
+      plate: "BSZ6C24",
+      type: MaintenanceType.PREVENTIVA,
+      priority: Criticality.CRITICA,
+      description: "Revisão Preventiva Periódica de 10.000 km — Troca de Óleo, Filtros e Regulagem de Freios",
+      diagnosis: "Revisão preventiva concluída com sucesso conforme plano institucional do transporte escolar.",
+      openedAt: new Date("2026-02-10T08:00:00Z"),
+      startedAt: new Date("2026-02-10T09:00:00Z"),
+      completedAt: new Date("2026-02-10T16:00:00Z"),
+      odometer: 49500,
+      partsCost: 1450.0,
+      laborCost: 450.0,
+      totalCost: 1900.0,
+      providerName: "Diesel & Peças Jaborandi",
+      documentReference: "NF-91823",
+      items: [
+        { description: "Kit Lubrificantes 15W40 + Filtros de Óleo, Ar e Combustível", itemType: "PECA", quantity: 1, unitCost: 1450.0, totalCost: 1450.0 },
+        { description: "Mão de Obra de Revisão Completa e Regulagem de Freios", itemType: "SERVICO", quantity: 1, unitCost: 450.0, totalCost: 450.0 },
+      ],
+      downtimes: [
+        { startDate: new Date("2026-02-10T08:00:00Z"), endDate: new Date("2026-02-10T16:00:00Z"), reason: "Manutenção Preventiva Periódica" },
+      ],
+    },
+    {
+      orderNumber: "OS-2026-002",
+      plate: "FFE3191",
+      type: MaintenanceType.PREVENTIVA,
+      priority: Criticality.CRITICA,
+      description: "Troca Preventiva de Pastilhas de Freio, Fluido DOT4 e Revisão Elétrica da UTI",
+      diagnosis: "Substituição preventiva por atingimento de desgaste programado antes de rotas intermunicipais.",
+      openedAt: new Date("2026-02-22T09:00:00Z"),
+      startedAt: new Date("2026-02-22T09:30:00Z"),
+      completedAt: new Date("2026-02-22T15:00:00Z"),
+      odometer: 114200,
+      partsCost: 780.0,
+      laborCost: 320.0,
+      totalCost: 1100.0,
+      providerName: "Auto Mecânica & Peças Central de Jaborandi",
+      documentReference: "NF-92040",
+      items: [
+        { description: "Jogo de Pastilhas de Freio Dianteiras/Traseiras + Fluido DOT4", itemType: "PECA", quantity: 1, unitCost: 780.0, totalCost: 780.0 },
+        { description: "Serviço Especializado de Freios e Sangria do Sistema", itemType: "SERVICO", quantity: 1, unitCost: 320.0, totalCost: 320.0 },
+      ],
+      downtimes: [
+        { startDate: new Date("2026-02-22T09:00:00Z"), endDate: new Date("2026-02-22T15:00:00Z"), reason: "Revisão Preventiva de Freios" },
+      ],
+    },
+    {
+      orderNumber: "OS-2026-003",
+      plate: "BVT5163",
+      type: MaintenanceType.CORRETIVA,
+      priority: Criticality.ALTA,
+      description: "Reparo emergencial no cilindro hidráulico da caçamba e vedação pneumática",
+      diagnosis: "Vazamento de fluido hidráulico identificado em operação de tapa-buracos.",
+      openedAt: new Date("2026-03-05T07:30:00Z"),
+      startedAt: new Date("2026-03-05T08:00:00Z"),
+      completedAt: new Date("2026-03-05T17:00:00Z"),
+      odometer: 54300,
+      partsCost: 920.0,
+      laborCost: 380.0,
+      totalCost: 1300.0,
+      providerName: "Oficina Municipal de Manutenção Pesada",
+      documentReference: "NF-92415",
+      items: [
+        { description: "Kit de Reparo do Pistão Hidráulico + Retentores e Mangueiras", itemType: "PECA", quantity: 1, unitCost: 920.0, totalCost: 920.0 },
+        { description: "Mão de Obra de Manutenção Mecânica e Teste de Carga", itemType: "SERVICO", quantity: 1, unitCost: 380.0, totalCost: 380.0 },
+      ],
+      downtimes: [
+        { startDate: new Date("2026-03-05T07:30:00Z"), endDate: new Date("2026-03-05T17:00:00Z"), reason: "Correção de Vazamento Hidráulico" },
+        // Intervalo sobreposto para comprovar o algoritmo de Interval Merging (sem dupla contagem)
+        { startDate: new Date("2026-03-05T10:00:00Z"), endDate: new Date("2026-03-05T15:00:00Z"), reason: "Inspeção Concorrente de Alinhamento Pneumático" },
+      ],
+    },
+    {
+      orderNumber: "OS-2026-004",
+      plate: "EEF9418",
+      type: MaintenanceType.PREVENTIVA,
+      priority: Criticality.MEDIA,
+      description: "Revisão Preventiva de Suspensão, Troca de Bieletas e Alinhamento da Van TFD",
+      diagnosis: "Inspeção e alinhamento programado para transporte de pacientes intermunicipal.",
+      openedAt: new Date("2026-03-18T08:00:00Z"),
+      startedAt: new Date("2026-03-18T08:30:00Z"),
+      completedAt: new Date("2026-03-18T13:30:00Z"),
+      odometer: 149800,
+      partsCost: 680.0,
+      laborCost: 260.0,
+      totalCost: 940.0,
+      providerName: "Auto Mecânica & Peças Central de Jaborandi",
+      documentReference: "NF-92890",
+      items: [
+        { description: "Par de Bieletas Dianteiras + Buchas de Bandeja Reforçadas", itemType: "PECA", quantity: 1, unitCost: 680.0, totalCost: 680.0 },
+        { description: "Alinhamento a Laser e Mão de Obra de Suspensão", itemType: "SERVICO", quantity: 1, unitCost: 260.0, totalCost: 260.0 },
+      ],
+      downtimes: [
+        { startDate: new Date("2026-03-18T08:00:00Z"), endDate: new Date("2026-03-18T13:30:00Z"), reason: "Preventiva de Suspensão" },
+      ],
+    },
+    {
+      orderNumber: "OS-2026-005",
+      plate: "TIR0D65",
+      type: MaintenanceType.PREVENTIVA,
+      priority: Criticality.MEDIA,
+      description: "Troca Preventiva de Óleo Sintético 0W20, Filtros e Checagem Geral da Frota Leve",
+      diagnosis: "Revisão preventiva semestral do veículo de representação do gabinete.",
+      openedAt: new Date("2026-04-02T09:00:00Z"),
+      startedAt: new Date("2026-04-02T09:30:00Z"),
+      completedAt: new Date("2026-04-02T12:00:00Z"),
+      odometer: 9400,
+      partsCost: 380.0,
+      laborCost: 140.0,
+      totalCost: 520.0,
+      providerName: "Posto & Auto Peças Municipal",
+      documentReference: "NF-93110",
+      items: [
+        { description: "Óleo Motor 0W20 Sintético + Filtros de Óleo e Cabine", itemType: "PECA", quantity: 1, unitCost: 380.0, totalCost: 380.0 },
+        { description: "Serviço de Troca e Checklist de Segurança de 25 Pontos", itemType: "SERVICO", quantity: 1, unitCost: 140.0, totalCost: 140.0 },
+      ],
+      downtimes: [
+        { startDate: new Date("2026-04-02T09:00:00Z"), endDate: new Date("2026-04-02T12:00:00Z"), reason: "Revisão Preventiva Básica" },
+      ],
+    },
+    {
+      orderNumber: "OS-2026-006",
+      plate: "BXQ4228",
+      type: MaintenanceType.PREVENTIVA,
+      priority: Criticality.ALTA,
+      description: "Manutenção Preventiva de 20.000 km — Sistema de Arrefecimento, Correias e Tensores",
+      diagnosis: "Troca preventiva das correias auxiliares e líquido refrigerante para rota escolar.",
+      openedAt: new Date("2026-04-15T08:30:00Z"),
+      startedAt: new Date("2026-04-15T09:00:00Z"),
+      completedAt: new Date("2026-04-15T16:30:00Z"),
+      odometer: 102100,
+      partsCost: 1150.0,
+      laborCost: 450.0,
+      totalCost: 1600.0,
+      providerName: "Diesel & Peças Jaborandi",
+      documentReference: "NF-93450",
+      items: [
+        { description: "Kit Correias Poly-V, Tensores e Líquido Arrefecimento Concentrado", itemType: "PECA", quantity: 1, unitCost: 1150.0, totalCost: 1150.0 },
+        { description: "Mão de Obra de Troca e Limpeza do Sistema de Arrefecimento", itemType: "SERVICO", quantity: 1, unitCost: 450.0, totalCost: 450.0 },
+      ],
+      downtimes: [
+        { startDate: new Date("2026-04-15T08:30:00Z"), endDate: new Date("2026-04-15T16:30:00Z"), reason: "Revisão Preventiva de Arrefecimento" },
+      ],
+    },
+    {
+      orderNumber: "OS-2026-007",
+      plate: "DK10446",
+      type: MaintenanceType.CORRETIVA,
+      priority: Criticality.CRITICA,
+      description: "Substituição emergencial de alternador e bateria 90Ah da Ambulância Master",
+      diagnosis: "Falha de carga elétrica acusada durante deslocamento urbano.",
+      openedAt: new Date("2026-04-20T10:00:00Z"),
+      startedAt: new Date("2026-04-20T10:30:00Z"),
+      completedAt: new Date("2026-04-20T18:00:00Z"),
+      odometer: 191200,
+      partsCost: 850.0,
+      laborCost: 250.0,
+      totalCost: 1100.0,
+      providerName: "Auto Elétrica Jaborandi",
+      documentReference: "NF-93720",
+      items: [
+        { description: "Alternador Recondicionado 120A + Bateria Moura 90Ah", itemType: "PECA", quantity: 1, unitCost: 850.0, totalCost: 850.0 },
+        { description: "Socorro Mecânico, Teste de Fuga e Instalação Elétrica", itemType: "SERVICO", quantity: 1, unitCost: 250.0, totalCost: 250.0 },
+      ],
+      downtimes: [
+        { startDate: new Date("2026-04-20T10:00:00Z"), endDate: new Date("2026-04-20T18:00:00Z"), reason: "Falha Elétrica e Troca de Alternador" },
+      ],
+    },
+  ];
+
+  for (const osData of orders2026) {
+    const targetVehicle = createdVehicles[osData.plate];
+    if (!targetVehicle) continue;
+
+    const existing = await prisma.maintenanceOrder.findFirst({
+      where: { tenantId: tenant.id, orderNumber: osData.orderNumber },
     });
 
-    if (!existingOrder) {
-      const ambPlanId = planIdByCategory[VehicleCategory.AMBULANCIA];
-      const planItem = ambPlanId
-        ? await prisma.preventivePlanItem.findFirst({ where: { planId: ambPlanId } })
-        : null;
+    let orderId: string;
 
-      await prisma.maintenanceOrder.create({
+    if (!existing) {
+      const createdOrder = await prisma.maintenanceOrder.create({
         data: {
           tenantId: tenant.id,
-          vehicleId: ambVehicle.id,
-          orderNumber: "OS-2025-001",
-          type: MaintenanceType.PREVENTIVA,
+          vehicleId: targetVehicle.id,
+          orderNumber: osData.orderNumber,
+          type: osData.type,
           status: OrderStatus.CONCLUIDA,
-          priority: Criticality.CRITICA,
-          origin: "PLANO_PREVENTIVO",
-          planId: ambPlanId,
-          planItemId: planItem?.id,
-          description: "Revisão Preventiva Programada — Troca de Óleo e Filtros da Ambulância UTI",
-          diagnosis: "Serviço preventivo executado rigorosamente conforme cronograma de 10.000 km",
-          openedAt: new Date("2025-03-01T08:00:00Z"),
-          startedAt: new Date("2025-03-01T09:00:00Z"),
-          completedAt: new Date("2025-03-01T14:30:00Z"),
-          odometerAtOpen: 110000,
-          odometerAtClose: 110000,
-          partsCost: 650.0,
-          laborCost: 280.0,
-          totalCost: 930.0,
-          providerName: "Auto Mecânica & Peças Central de Jaborandi",
-          documentReference: "NF-84210",
+          priority: osData.priority,
+          origin: osData.type === MaintenanceType.PREVENTIVA ? "PLANO_PREVENTIVO" : "OPERACIONAL",
+          description: osData.description,
+          diagnosis: osData.diagnosis,
+          openedAt: osData.openedAt,
+          startedAt: osData.startedAt,
+          completedAt: osData.completedAt,
+          odometerAtOpen: osData.odometer,
+          odometerAtClose: osData.odometer,
+          partsCost: osData.partsCost,
+          laborCost: osData.laborCost,
+          totalCost: osData.totalCost,
+          providerName: osData.providerName,
+          documentReference: osData.documentReference,
           assignedUserId: adminUser.id,
           items: {
-            create: [
-              {
-                tenantId: tenant.id,
-                description: "Kit Óleo Sintético 5W30 + Filtros (Óleo, Ar, Combustível)",
-                itemType: "PECA",
-                quantity: 1,
-                unitCost: 650.0,
-                totalCost: 650.0,
-              },
-              {
-                tenantId: tenant.id,
-                description: "Mão de Obra Especializada e Lubrificação Geral",
-                itemType: "SERVICO",
-                quantity: 1,
-                unitCost: 280.0,
-                totalCost: 280.0,
-              },
-            ],
+            create: osData.items.map((item) => ({
+              tenantId: tenant.id,
+              description: item.description,
+              itemType: item.itemType,
+              quantity: item.quantity,
+              unitCost: item.unitCost,
+              totalCost: item.totalCost,
+            })),
           },
         },
       });
+      orderId = createdOrder.id;
+    } else {
+      orderId = existing.id;
     }
-  }
 
-  const truckVehicle = createdVehicles["BVT5163"]; // VW 14.190 Basculante
-  if (truckVehicle) {
-    const existingOrder = await prisma.maintenanceOrder.findFirst({
-      where: { tenantId: tenant.id, orderNumber: "OS-2025-002" },
-    });
-
-    if (!existingOrder) {
-      await prisma.maintenanceOrder.create({
-        data: {
-          tenantId: tenant.id,
-          vehicleId: truckVehicle.id,
-          orderNumber: "OS-2025-002",
-          type: MaintenanceType.CORRETIVA,
-          status: OrderStatus.EM_EXECUCAO,
-          priority: Criticality.ALTA,
-          origin: "OPERACIONAL",
-          description: "Substituição de flexível de freio e ajuste do sistema pneumático",
-          diagnosis: "Pequeno vazamento de ar detectado na inspeção prévia",
-          openedAt: new Date("2025-03-05T09:15:00Z"),
-          startedAt: new Date("2025-03-05T10:00:00Z"),
-          odometerAtOpen: 52100,
-          partsCost: 320.0,
-          laborCost: 180.0,
-          totalCost: 500.0,
-          providerName: "Oficina Municipal de Manutenção Pesada",
-          assignedUserId: adminUser.id,
-          items: {
-            create: [
-              {
-                tenantId: tenant.id,
-                description: "Mangueira Flexível de Freio Pneumático Reforçada",
-                itemType: "PECA",
-                quantity: 2,
-                unitCost: 160.0,
-                totalCost: 320.0,
-              },
-              {
-                tenantId: tenant.id,
-                description: "Mão de Obra de Troca e Teste de Estanqueidade",
-                itemType: "SERVICO",
-                quantity: 1,
-                unitCost: 180.0,
-                totalCost: 180.0,
-              },
-            ],
-          },
-        },
+    // Registrar períodos de parada (Downtime) correspondentes
+    for (const dt of osData.downtimes) {
+      const existingDt = await prisma.vehicleDowntime.findFirst({
+        where: { vehicleId: targetVehicle.id, startDate: dt.startDate },
       });
+      if (!existingDt) {
+        await prisma.vehicleDowntime.create({
+          data: {
+            tenantId: tenant.id,
+            vehicleId: targetVehicle.id,
+            orderId,
+            startDate: dt.startDate,
+            endDate: dt.endDate,
+            reason: dt.reason,
+            notes: `Registro de parada vinculado à ordem de serviço ${osData.orderNumber}`,
+          },
+        });
+      }
     }
   }
+  console.log("✅ Ordens de serviço de 2026 e paradas (downtimes) registradas com 100% dos custos discriminados");
 
   // 10. Orçamento Anual e Governança Financeira (Roadmap R2)
   const existingBudget = await prisma.annualMaintenanceBudget.findFirst({
@@ -2058,12 +2220,12 @@ async function main() {
   }
   console.log("✅ Orçamento anual de manutenção configurado para 2026");
 
-  // 11. Snapshot Mensal Histórico (R2)
-  const existingSnapshot = await prisma.kpiSnapshot.findFirst({
+  // 11. Snapshots Mensais Históricos (Mês 3 e Mês 4)
+  const existingSnapshot3 = await prisma.kpiSnapshot.findFirst({
     where: { tenantId: tenant.id, referenceYear: 2026, referenceMonth: 3 },
   });
 
-  if (!existingSnapshot) {
+  if (!existingSnapshot3) {
     await prisma.kpiSnapshot.create({
       data: {
         tenantId: tenant.id,
@@ -2071,26 +2233,26 @@ async function main() {
         referenceMonth: 3,
         periodStart: new Date("2026-03-01T00:00:00Z"),
         periodEnd: new Date("2026-03-31T23:59:59Z"),
-        totalCost: 1430.0,
-        preventiveCost: 930.0,
-        correctiveCost: 500.0,
+        totalCost: 2240.0,
+        preventiveCost: 940.0,
+        correctiveCost: 1300.0,
         totalOrders: 2,
         preventiveOrders: 1,
         correctiveOrders: 1,
-        totalKmDriven: 4500,
-        costPerKm: 0.3178,
-        availabilityPercentage: 98.5,
-        totalDowntimeHours: 6.5,
+        totalKmDriven: 6500,
+        costPerKm: 0.3446,
+        availabilityPercentage: 99.1,
+        totalDowntimeHours: 15.0,
         preventiveCompliancePercentage: 100.0,
-        dataQualityScore: 92.5,
+        dataQualityScore: 100.0,
         isFrozen: true,
         createdByUserId: adminUser.id,
         notes: "Fechamento mensal de referência do Mês 3 arquivado para histórico de auditoria.",
         metricsData: {
           summary: {
-            totalCost: 1430.0,
-            preventiveCost: 930.0,
-            correctiveCost: 500.0,
+            totalCost: 2240.0,
+            preventiveCost: 940.0,
+            correctiveCost: 1300.0,
             totalOrders: 2,
           },
           frozenAt: "2026-04-01T00:00:00Z",
@@ -2099,7 +2261,52 @@ async function main() {
       },
     });
   }
-  console.log("✅ Snapshot mensal arquivado para o Mês 3");
+
+  const existingSnapshot4 = await prisma.kpiSnapshot.findFirst({
+    where: { tenantId: tenant.id, referenceYear: 2026, referenceMonth: 4 },
+  });
+
+  if (!existingSnapshot4) {
+    await prisma.kpiSnapshot.create({
+      data: {
+        tenantId: tenant.id,
+        referenceYear: 2026,
+        referenceMonth: 4,
+        periodStart: new Date("2026-04-01T00:00:00Z"),
+        periodEnd: new Date("2026-04-30T23:59:59Z"),
+        totalCost: 8460.0,
+        preventiveCost: 6060.0,
+        correctiveCost: 2400.0,
+        totalOrders: 7,
+        preventiveOrders: 5,
+        correctiveOrders: 2,
+        totalKmDriven: 24500,
+        costPerKm: 0.3453,
+        availabilityPercentage: 99.2,
+        totalDowntimeHours: 48.0,
+        preventiveCompliancePercentage: 100.0,
+        dataQualityScore: 100.0,
+        isFrozen: true,
+        createdByUserId: adminUser.id,
+        notes: "Snapshot oficial imutável de fechamento do Mês 4 (Monitoramento & Visão Financeira). 100% dos custos auditados e comprovados.",
+        metricsData: {
+          summary: {
+            totalCost: 8460.0,
+            preventiveCost: 6060.0,
+            correctiveCost: 2400.0,
+            totalOrders: 7,
+            preventiveOrdersCount: 5,
+            correctiveOrdersCount: 2,
+            availabilityPercentage: 99.2,
+            dataQualityScore: 100.0,
+          },
+          frozenAt: "2026-05-01T00:00:00Z",
+          frozenBy: adminUser.email,
+        },
+      },
+    });
+  }
+  console.log("✅ Snapshots mensais arquivados para o Mês 3 e Mês 4");
 
   // 12. Registro Mensal de Governança do Projeto — Mês 4 (R2)
   const existingUpdate = await prisma.monthlyProjectUpdate.findFirst({

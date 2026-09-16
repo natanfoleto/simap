@@ -44,7 +44,11 @@ import {
   Filter,
   BarChart3,
   Edit3,
+  Lightbulb,
+  Sparkles,
+  Info,
 } from "lucide-react";
+import { generateFleetFinancialInsights, FleetInsight } from "@/lib/domain/financial-indicators";
 import {
   ResponsiveContainer,
   BarChart,
@@ -178,11 +182,12 @@ export default function FinancialDashboardPage({ params }: { params: { tenantSlu
         category: selectedCategory !== "ALL" ? selectedCategory : undefined,
         department: selectedDepartment !== "ALL" ? selectedDepartment : undefined,
       },
+      insights: fleetInsights,
     });
 
     toast({
       title: "Relatório PDF Gerado",
-      description: "O download do Relatório Executivo foi iniciado.",
+      description: "O download do Relatório Executivo com Primeiros Insights foi iniciado.",
     });
   };
 
@@ -301,6 +306,32 @@ export default function FinancialDashboardPage({ params }: { params: { tenantSlu
     correctiveCost: null,
     ordersCount: null,
   };
+
+  const topCategoryItem = data?.categoriesDistribution && data.categoriesDistribution.length > 0
+    ? {
+        category: data.categoriesDistribution[0].category,
+        cost: data.categoriesDistribution[0].totalCost,
+        percentage: summary.totalCost > 0 ? Number(((data.categoriesDistribution[0].totalCost / summary.totalCost) * 100).toFixed(1)) : 0,
+      }
+    : undefined;
+
+  const fleetInsights: FleetInsight[] = generateFleetFinancialInsights({
+    totalCost: summary.totalCost,
+    preventiveCost: summary.preventiveCost,
+    correctiveCost: summary.correctiveCost,
+    preventiveOrdersCount: summary.preventiveOrdersCount,
+    correctiveOrdersCount: summary.correctiveOrdersCount,
+    totalOrdersCount: summary.totalOrdersCount,
+    costPerKm: summary.costPerKm,
+    totalKmDriven: summary.totalKmDriven,
+    availabilityPercentage: summary.availabilityPercentage,
+    totalDowntimeHours: summary.totalDowntimeHours,
+    dataQualityScore: summary.dataQualityScore,
+    costCompletenessPercentage: summary.costCompletenessPercentage,
+    odometerCoveragePercentage: summary.odometerCoveragePercentage,
+    pendingInconsistenciesCount: summary.pendingInconsistenciesCount,
+    topCategoryByCost: topCategoryItem,
+  });
 
   return (
     <div className="space-y-8">
@@ -509,8 +540,12 @@ export default function FinancialDashboardPage({ params }: { params: { tenantSlu
               />
             </div>
             <div className="mt-3 pt-1 flex justify-between text-[11px] text-muted-foreground font-medium">
-              <span className="text-emerald-600 dark:text-emerald-400 font-bold">{summary.preventiveOrdersCount} OS Preventivas</span>
-              <span className="text-rose-600 dark:text-rose-400 font-bold">{summary.correctiveOrdersCount} OS Corretivas</span>
+              <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                {summary.preventiveOrdersCount} OS Preventivas ({summary.totalOrdersCount > 0 ? ((summary.preventiveOrdersCount / summary.totalOrdersCount) * 100).toFixed(0) : 0}%)
+              </span>
+              <span className="text-rose-600 dark:text-rose-400 font-bold">
+                {summary.correctiveOrdersCount} OS Corretivas ({summary.totalOrdersCount > 0 ? ((summary.correctiveOrdersCount / summary.totalOrdersCount) * 100).toFixed(0) : 0}%)
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -630,6 +665,92 @@ export default function FinancialDashboardPage({ params }: { params: { tenantSlu
           </CardContent>
         </Card>
       </div>
+
+      {/* 4.5 Seção de Primeiros Insights da Frota (Regras Transparentes) */}
+      <Card className="rounded-3xl border-border/40 bg-card/40 backdrop-blur-md overflow-hidden shadow-sm">
+        <CardHeader className="p-6 pb-3 border-b border-border/20">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                <Lightbulb className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-base sm:text-lg font-extrabold tracking-tight">
+                    Primeiros Insights & Diagnósticos da Frota
+                  </CardTitle>
+                  <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/20">
+                    Regras Transparentes
+                  </Badge>
+                </div>
+                <CardDescription className="text-xs mt-0.5">
+                  Análise automatizada sem IA baseada em parâmetros operacionais auditáveis (Mês 4)
+                </CardDescription>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+              <span>{fleetInsights.length} diagnósticos ativos</span>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-6 pt-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {fleetInsights.map((insight) => {
+              const isPositive = insight.severity === "POSITIVE";
+              const isWarning = insight.severity === "WARNING";
+              return (
+                <div
+                  key={insight.id}
+                  className={`p-4 rounded-2xl border transition-all duration-200 flex flex-col justify-between ${
+                    isPositive
+                      ? "bg-emerald-500/[0.04] border-emerald-500/20 text-emerald-950 dark:text-emerald-100"
+                      : isWarning
+                      ? "bg-amber-500/[0.04] border-amber-500/20 text-amber-950 dark:text-amber-100"
+                      : "bg-blue-500/[0.04] border-blue-500/20 text-blue-950 dark:text-blue-100"
+                  }`}
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <h4 className="text-xs sm:text-sm font-bold flex items-center gap-1.5 text-foreground">
+                        {isPositive ? (
+                          <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        ) : isWarning ? (
+                          <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                        ) : (
+                          <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                        )}
+                        <span>{insight.title}</span>
+                      </h4>
+                      <Badge
+                        variant="secondary"
+                        className={`text-[10px] font-mono shrink-0 ${
+                          isPositive
+                            ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                            : isWarning
+                            ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                            : "bg-blue-500/15 text-blue-700 dark:text-blue-300"
+                        }`}
+                      >
+                        {insight.metric}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {insight.description}
+                    </p>
+                  </div>
+                  {insight.recommendation && (
+                    <div className="mt-3 pt-2.5 border-t border-border/20 text-[11px] text-muted-foreground/90 italic flex items-start gap-1.5">
+                      <span className="font-semibold text-foreground not-italic">Ação recomendada:</span>
+                      <span>{insight.recommendation}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* 5. Gráficos Gerenciais (Recharts) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

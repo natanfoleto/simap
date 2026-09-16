@@ -2,6 +2,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { FinancialSummaryData } from "@/hooks/use-financial";
 import { formatBRL, formatPercentage, formatUTCDate } from "@/lib/formatters";
+import { generateFleetFinancialInsights, FleetInsight } from "@/lib/domain/financial-indicators";
 
 export interface GeneratePdfOptions {
   tenantName: string;
@@ -12,6 +13,7 @@ export interface GeneratePdfOptions {
     category?: string;
     department?: string;
   };
+  insights?: FleetInsight[];
 }
 
 export function generateFinancialReportPdf(options: GeneratePdfOptions) {
@@ -61,15 +63,21 @@ export function generateFinancialReportPdf(options: GeneratePdfOptions) {
   const kpiHeaders = [["Indicador Chave", "Valor Apurado", "Referência / Meta", "Status"]];
   const costPerKmText = data.summary.costPerKm !== null ? `R$ ${data.summary.costPerKm.toFixed(2)}/km` : "Sem dados suficientes";
 
+  const totalOrders = data.summary.totalOrdersCount || 0;
+  const prevOrdersPct = totalOrders > 0 ? ((data.summary.preventiveOrdersCount / totalOrders) * 100).toFixed(1) : "0.0";
+  const corrOrdersPct = totalOrders > 0 ? ((data.summary.correctiveOrdersCount / totalOrders) * 100).toFixed(1) : "0.0";
+
   const kpiData = [
     ["Custo Total com Manutenção", formatBRL(data.summary.totalCost), "Planejado no Exercício", "Acompanhado"],
     ["Custo em Manutenções Preventivas", `${formatBRL(data.summary.preventiveCost)} (${data.summary.preventiveCostPercentage}%)`, "Meta: Maioria do Custo", data.summary.preventiveCostPercentage >= 50 ? "Favorável" : "Atenção"],
     ["Custo em Manutenções Corretivas", `${formatBRL(data.summary.correctiveCost)} (${data.summary.correctiveCostPercentage}%)`, "Meta: Redução Progressiva", data.summary.correctiveCostPercentage < 50 ? "Controlado" : "Elevado"],
+    ["Volume de OS Preventivas", `${data.summary.preventiveOrdersCount} OS (${prevOrdersPct}%)`, "Meta: ≥ 50% das Ordens", Number(prevOrdersPct) >= 50 ? "Favorável" : "Em Transição"],
+    ["Volume de OS Corretivas", `${data.summary.correctiveOrdersCount} OS (${corrOrdersPct}%)`, "Meta: Redução Progressiva", Number(corrOrdersPct) < 50 ? "Controlado" : "Elevado"],
     ["Custo Médio por Km Rodado", costPerKmText, "Parâmetro Operacional", data.summary.costPerKm !== null ? "Calculado" : "Requer Leituras"],
     ["Disponibilidade da Frota", `${data.summary.availabilityPercentage}%`, "Meta Mínima: 90%", data.summary.availabilityPercentage >= 90 ? "Dentro da Meta" : "Abaixo da Meta"],
     ["Total de Horas de Parada (Downtime)", `${data.summary.totalDowntimeHours} h`, `${data.summary.totalFleetHours} h possíveis`, "Sem sobreposição"],
     ["Cumprimento do Plano Preventivo", `${data.summary.preventiveCompliancePercentage}%`, "Meta: 100% no prazo", data.summary.preventiveCompliancePercentage >= 80 ? "Adequado" : "Requer Atenção"],
-    ["Índice de Qualidade dos Registros", `${data.summary.dataQualityScore}%`, "Cobertura de Odômetro e Custos", data.summary.dataQualityScore >= 80 ? "Alto" : "Regular"],
+    ["Índice de Qualidade dos Registros", `${data.summary.dataQualityScore}%`, "100% dos Gastos Registrados", data.summary.costCompletenessPercentage === 100 ? "Conforme (100%)" : "Regular"],
   ];
 
   autoTable(doc, {
@@ -85,18 +93,88 @@ export function generateFinancialReportPdf(options: GeneratePdfOptions) {
     },
     bodyStyles: {
       fontSize: 8,
-      cellPadding: 2.2,
+      cellPadding: 2,
     },
     columnStyles: {
-      0: { fontStyle: "bold", cellWidth: 70 },
-      1: { cellWidth: 50 },
+      0: { fontStyle: "bold", cellWidth: 68 },
+      1: { cellWidth: 52 },
       2: { cellWidth: 45 },
       3: { cellWidth: 25 },
     },
   });
 
   // @ts-expect-error - jspdf-autotable extends jsPDF with lastAutoTable
-  currentY = (doc.lastAutoTable.finalY || 100) + 8;
+  currentY = (doc.lastAutoTable.finalY || 100) + 7;
+
+  // 3.5 Primeiros Insights Analíticos (Regras Transparentes)
+  const insights = options.insights || generateFleetFinancialInsights({
+    totalCost: data.summary.totalCost,
+    preventiveCost: data.summary.preventiveCost,
+    correctiveCost: data.summary.correctiveCost,
+    preventiveOrdersCount: data.summary.preventiveOrdersCount,
+    correctiveOrdersCount: data.summary.correctiveOrdersCount,
+    totalOrdersCount: data.summary.totalOrdersCount,
+    costPerKm: data.summary.costPerKm,
+    totalKmDriven: data.summary.totalKmDriven,
+    availabilityPercentage: data.summary.availabilityPercentage,
+    totalDowntimeHours: data.summary.totalDowntimeHours,
+    dataQualityScore: data.summary.dataQualityScore,
+    costCompletenessPercentage: data.summary.costCompletenessPercentage,
+    odometerCoveragePercentage: data.summary.odometerCoveragePercentage,
+    pendingInconsistenciesCount: data.summary.pendingInconsistenciesCount,
+    topCategoryByCost: data.categoriesDistribution[0] ? {
+      category: data.categoriesDistribution[0].category,
+      cost: data.categoriesDistribution[0].totalCost,
+      percentage: data.summary.totalCost > 0 ? Number(((data.categoriesDistribution[0].totalCost / data.summary.totalCost) * 100).toFixed(1)) : 0,
+    } : undefined,
+  });
+
+  if (currentY > 230) {
+    doc.addPage();
+    currentY = 20;
+  }
+
+  doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "bold");
+  doc.text("Primeiros Insights Analíticos & Recomendações (Regras Transparentes)", 14, currentY);
+
+  currentY += 4;
+
+  const insightHeaders = [["Eixo / Título", "Diagnóstico Analítico", "Métrica Apurada", "Recomendação Operacional"]];
+  const insightRows = insights.map((ins) => [
+    ins.title,
+    ins.description,
+    ins.metric,
+    ins.recommendation || "Manter monitoramento",
+  ]);
+
+  autoTable(doc, {
+    startY: currentY,
+    head: insightHeaders,
+    body: insightRows,
+    theme: "grid",
+    headStyles: {
+      fillColor: [16, 185, 129],
+      textColor: [255, 255, 255],
+      fontStyle: "bold",
+      fontSize: 8,
+    },
+    bodyStyles: {
+      fontSize: 7.5,
+      cellPadding: 2,
+    },
+    columnStyles: {
+      0: { fontStyle: "bold", cellWidth: 46 },
+      1: { cellWidth: 66 },
+      2: { fontStyle: "bold", cellWidth: 38 },
+      3: { cellWidth: 40 },
+    },
+  });
+
+  // @ts-expect-error - jspdf-autotable extends jsPDF with lastAutoTable
+  currentY = (doc.lastAutoTable.finalY || 160) + 7;
+
 
   // 4. Distribuição por Categoria
   doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);

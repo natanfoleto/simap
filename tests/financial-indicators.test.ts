@@ -5,6 +5,7 @@ import {
   calculateFleetDowntimeAndAvailability,
   calculatePreventiveCompliance,
   evaluateDataQuality,
+  generateFleetFinancialInsights,
 } from "@/lib/domain/financial-indicators";
 
 describe("Regras de Domínio e Indicadores Financeiros (Roadmap R2)", () => {
@@ -223,4 +224,75 @@ describe("Regras de Domínio e Indicadores Financeiros (Roadmap R2)", () => {
       expect(evaluation.pendingInconsistenciesCount).toBeGreaterThan(0);
     });
   });
+
+  describe("generateFleetFinancialInsights (Primeiros Insights Analíticos)", () => {
+    it("deve gerar insights positivos quando houver transição preventiva, alta disponibilidade e 100% de gastos", () => {
+      const insights = generateFleetFinancialInsights({
+        totalCost: 10000,
+        preventiveCost: 7500, // 75%
+        correctiveCost: 2500, // 25%
+        preventiveOrdersCount: 8,
+        correctiveOrdersCount: 2,
+        totalOrdersCount: 10,
+        costPerKm: 0.45,
+        totalKmDriven: 22000,
+        availabilityPercentage: 98.2,
+        totalDowntimeHours: 12,
+        dataQualityScore: 100,
+        costCompletenessPercentage: 100,
+        odometerCoveragePercentage: 100,
+        pendingInconsistenciesCount: 0,
+        topCategoryByCost: { category: "ONIBUS", cost: 5000, percentage: 50 },
+      });
+
+      expect(insights.length).toBeGreaterThanOrEqual(4);
+      const transition = insights.find((i) => i.category === "TRANSITION");
+      expect(transition?.severity).toBe("POSITIVE");
+      expect(transition?.title).toContain("Inversão da Curva");
+
+      const efficiency = insights.find((i) => i.category === "EFFICIENCY");
+      expect(efficiency?.severity).toBe("POSITIVE");
+      expect(efficiency?.metric).toContain("0.45");
+
+      const quality = insights.find((i) => i.category === "DATA_QUALITY");
+      expect(quality?.severity).toBe("POSITIVE");
+      expect(quality?.title).toContain("100% dos Gastos Registrados");
+
+      const budget = insights.find((i) => i.category === "BUDGET");
+      expect(budget?.severity).toBe("INFO");
+      expect(budget?.title).toContain("ONIBUS");
+    });
+
+    it("deve alertar adequadamente quando corretivas dominarem e dados forem incompletos", () => {
+      const insights = generateFleetFinancialInsights({
+        totalCost: 10000,
+        preventiveCost: 2000,
+        correctiveCost: 8000,
+        preventiveOrdersCount: 2,
+        correctiveOrdersCount: 8,
+        totalOrdersCount: 10,
+        costPerKm: null,
+        totalKmDriven: 0,
+        availabilityPercentage: 85.0,
+        totalDowntimeHours: 80,
+        dataQualityScore: 50,
+        costCompletenessPercentage: 60,
+        odometerCoveragePercentage: 40,
+        pendingInconsistenciesCount: 4,
+      });
+
+      const transition = insights.find((i) => i.category === "TRANSITION");
+      expect(transition?.severity).toBe("WARNING");
+
+      const availability = insights.find((i) => i.category === "AVAILABILITY");
+      expect(availability?.severity).toBe("WARNING");
+
+      const quality = insights.find((i) => i.category === "DATA_QUALITY");
+      expect(quality?.severity).toBe("WARNING");
+
+      const efficiency = insights.find((i) => i.category === "EFFICIENCY");
+      expect(efficiency?.metric).toBe("Sem dados suficientes");
+    });
+  });
 });
+
